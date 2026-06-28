@@ -5,7 +5,6 @@ const PIECE_VALUES: Record<PieceType, number> = {
   pawn: 100, knight: 320, bishop: 330, rook: 500, queen: 900, king: 20000,
 };
 
-// Piece-square tables (from black's perspective, row 0 = black back rank)
 const PST: Record<PieceType, number[][]> = {
   pawn: [
     [0,  0,  0,  0,  0,  0,  0,  0],
@@ -98,7 +97,6 @@ function getAllLegalMoves(state: GameState): MoveOption[] {
       if (!p || p.color !== state.turn) continue;
       const targets = legalMoves(state, r, c);
       for (const [tr, tc] of targets) {
-        // Handle promotion
         if (p.type === 'pawn' && (tr === 0 || tr === 7)) {
           for (const promote of ['queen', 'rook', 'bishop', 'knight'] as PieceType[]) {
             moves.push({ from: [r, c], to: [tr, tc], promote });
@@ -168,7 +166,6 @@ export function getBestMove(state: GameState, depth = 3): MoveOption | null {
   let bestVal = -Infinity;
   let bestMove: MoveOption = moves[0];
 
-  // Shuffle for variety among equal moves
   const shuffled = [...moves].sort(() => Math.random() - 0.5);
 
   for (const m of shuffled) {

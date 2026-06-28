@@ -3,6 +3,7 @@ import { initGame, legalMoves, makeMove } from './Chess.ts';
 import type { GameState, PieceType } from './Chess.ts';
 import Board from './Board.tsx';
 import Menu from './Menu.tsx';
+import Settings from './Settings.tsx';
 import { getBestMove } from './Ai.ts';
 import './app.css';
 
@@ -26,11 +27,11 @@ export default function App() {
   const [flipped, setFlipped] = useState(false);
   const [pendingFrom, setPendingFrom] = useState<[number, number] | null>(null);
   const [showHints, setShowHints] = useState(true);
+  const [showCoords, setShowCoords] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const aiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // AI move trigger
   useEffect(() => {
     if (!vsAI || screen !== 'playing') return;
     const aiColor = playerColor === 'white' ? 'black' : 'white';
@@ -41,16 +42,11 @@ export default function App() {
     setAiThinking(true);
     aiTimeoutRef.current = setTimeout(() => {
       const move = getBestMove(state, 3);
-      if (move) {
-        const newState = makeMove(state, move.from, move.to, move.promote);
-        setState(newState);
-      }
+      if (move) setState(makeMove(state, move.from, move.to, move.promote));
       setAiThinking(false);
     }, 300);
 
-    return () => {
-      if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
-    };
+    return () => { if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current); };
   }, [state, vsAI, playerColor, screen]);
 
   function handleStart(mode: 'two-player' | 'vs-ai', color: 'white' | 'black') {
@@ -65,8 +61,6 @@ export default function App() {
   function handleSquareClick(r: number, c: number) {
     if (state.status === 'checkmate' || state.status === 'stalemate') return;
     if (state.promotionPending) return;
-
-    // Block input during AI's turn
     if (vsAI) {
       const aiColor = playerColor === 'white' ? 'black' : 'white';
       if (state.turn === aiColor) return;
@@ -76,42 +70,32 @@ export default function App() {
 
     if (state.selected) {
       const [sr, sc] = state.selected;
-      // Always compute legal moves for this selected piece — regardless of showHints
       const movesForSelected = legalMoves(state, sr, sc);
       const isValid = movesForSelected.some(([vr, vc]) => vr === r && vc === c);
 
       if (isValid) {
         const movingPiece = state.board[sr][sc]!;
         const isPawnPromotion = movingPiece.type === 'pawn' && (r === 0 || r === 7);
-
         if (isPawnPromotion) {
           setPendingFrom([sr, sc]);
-          const newState = makeMove(state, [sr, sc], [r, c]);
-          setState(newState);
+          setState(makeMove(state, [sr, sc], [r, c]));
         } else {
           setState(makeMove(state, [sr, sc], [r, c]));
         }
         return;
       }
 
-      // Clicking own piece → reselect
       if (piece && piece.color === state.turn) {
-        const moves = legalMoves(state, r, c);
-        setState({ ...state, selected: [r, c], validMoves: showHints ? moves : [] });
+        setState({ ...state, selected: [r, c], validMoves: legalMoves(state, r, c) });
         return;
       }
 
-      // Deselect
       setState({ ...state, selected: null, validMoves: [] });
       return;
     }
 
-    // Select a piece
     if (piece && piece.color === state.turn) {
-      const moves = legalMoves(state, r, c);
-      // Store validMoves in state — show them only if hints are on
-      // BUT we always keep them internally for move validation
-      setState({ ...state, selected: [r, c], validMoves: moves });
+      setState({ ...state, selected: [r, c], validMoves: legalMoves(state, r, c) });
     }
   }
 
@@ -119,8 +103,7 @@ export default function App() {
     if (!state.promotionPending || !pendingFrom) return;
     const [tr, tc] = state.promotionPending;
     const [fr, fc] = pendingFrom;
-    const newState = makeMove({ ...state, promotionPending: null }, [fr, fc], [tr, tc], type);
-    setState(newState);
+    setState(makeMove({ ...state, promotionPending: null }, [fr, fc], [tr, tc], type));
     setPendingFrom(null);
   }
 
@@ -137,14 +120,11 @@ export default function App() {
     setScreen('menu');
   }
 
-  if (screen === 'menu') {
-    return <Menu onStart={handleStart} />;
-  }
+  if (screen === 'menu') return <Menu onStart={handleStart} />;
 
   const scores = materialScore(state);
   const whiteLead = scores.white - scores.black;
   const blackLead = scores.black - scores.white;
-
   const aiColor = playerColor === 'white' ? 'black' : 'white';
   const blackLabel = vsAI ? (aiColor === 'black' ? 'Computer' : 'You') : 'Black';
   const whiteLabel = vsAI ? (playerColor === 'white' ? 'You' : 'Computer') : 'White';
@@ -153,12 +133,9 @@ export default function App() {
     checkmate: `Checkmate — ${state.turn === 'white' ? 'Black' : 'White'} wins`,
     stalemate: 'Stalemate — Draw',
     check: `${state.turn === 'white' ? 'White' : 'Black'} is in check`,
-    playing: aiThinking
-      ? 'Computer is thinking…'
-      : `${state.turn === 'white' ? 'White' : 'Black'} to move`,
+    playing: aiThinking ? 'Computer is thinking…' : `${state.turn === 'white' ? 'White' : 'Black'} to move`,
   }[state.status];
 
-  // Pass validMoves to Board only when hints are enabled
   const displayState = showHints ? state : { ...state, validMoves: [] };
 
   return (
@@ -169,19 +146,11 @@ export default function App() {
           <span className="logo-text">Chess</span>
         </div>
         <div className="header-actions">
-          <button className="btn-ghost" onClick={goToMenu}>
-            ← Menu
-          </button>
-          <button className="btn-ghost" onClick={() => setFlipped(f => !f)} title="Flip board">
-            ↕ Flip
-          </button>
-          <button className="btn-ghost" onClick={resetGame}>
-            ↺ New game
-          </button>
+          <button className="btn-ghost" onClick={goToMenu}>← Menu</button>
+          <button className="btn-ghost" onClick={resetGame}>↺ New game</button>
           <button
             className={`btn-ghost ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(s => !s)}
-            title="Settings"
           >
             ⚙ Settings
           </button>
@@ -189,24 +158,18 @@ export default function App() {
       </header>
 
       {showSettings && (
-        <div className="settings-bar">
-          <label className="setting-toggle">
-            <span>Show valid moves</span>
-            <div
-              className={`toggle ${showHints ? 'on' : ''}`}
-              onClick={() => setShowHints(h => !h)}
-              role="switch"
-              aria-checked={showHints}
-            >
-              <div className="toggle-thumb" />
-            </div>
-          </label>
-        </div>
+        <Settings
+          showHints={showHints}
+          showCoords={showCoords}
+          flipped={flipped}
+          onToggleHints={() => setShowHints(h => !h)}
+          onToggleCoords={() => setShowCoords(c => !c)}
+          onToggleFlipped={() => setFlipped(f => !f)}
+        />
       )}
 
       <main className="main">
         <div className="game-layout">
-          {/* Black side info */}
           <div className="player-bar">
             <div className="player-info">
               <div className={`player-avatar ${vsAI && aiColor === 'black' ? 'ai-avatar' : 'black-avatar'}`}>
@@ -219,7 +182,9 @@ export default function App() {
             </div>
             <div className="captured-pieces">
               {state.capturedByBlack.map((p, i) => (
-                <span key={i} className="captured">{['♔','♕','♖','♗','♘','♙'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}</span>
+                <span key={i} className="captured">
+                  {['♔','♕','♖','♗','♘','♙'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}
+                </span>
               ))}
             </div>
             {vsAI && aiThinking && aiColor === 'black' && (
@@ -231,7 +196,10 @@ export default function App() {
             state={displayState}
             onSquareClick={handleSquareClick}
             onPromotion={handlePromotion}
-            flipped={flipped} showCoordinates={false} showValidMoves={false}          />
+            flipped={flipped}
+            showCoordinates={showCoords}
+            showValidMoves={showHints}
+          />
 
           <div className="player-bar">
             <div className="player-info">
@@ -245,7 +213,9 @@ export default function App() {
             </div>
             <div className="captured-pieces">
               {state.capturedByWhite.map((p, i) => (
-                <span key={i} className="captured">{['♚','♛','♜','♝','♞','♟'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}</span>
+                <span key={i} className="captured">
+                  {['♚','♛','♜','♝','♞','♟'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}
+                </span>
               ))}
             </div>
             {vsAI && aiThinking && aiColor === 'white' && (
@@ -254,7 +224,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Side panel */}
         <aside className="side-panel">
           <div className={`status-card ${state.status}`}>
             <div className="status-dot" />
