@@ -1,3 +1,5 @@
+import './App.css';
+
 interface Props {
   showHints: boolean;
   showCoords: boolean;
@@ -17,7 +19,7 @@ interface ToggleRowProps {
 
 function ToggleRow({ icon, name, desc, value, onToggle }: ToggleRowProps) {
   return (
-    <label className="setting-item">
+    <div className="setting-item" onClick={onToggle} role="switch" aria-checked={value} style={{ cursor: 'pointer' }}>
       <div className="setting-label">
         <span className="setting-icon">{icon}</span>
         <div>
@@ -25,15 +27,10 @@ function ToggleRow({ icon, name, desc, value, onToggle }: ToggleRowProps) {
           <div className="setting-desc">{desc}</div>
         </div>
       </div>
-      <div
-        className={`toggle ${value ? 'on' : ''}`}
-        onClick={onToggle}
-        role="switch"
-        aria-checked={value}
-      >
+      <div className={`toggle ${value ? 'on' : ''}`}>
         <div className="toggle-thumb" />
       </div>
-    </label>
+    </div>
   );
 }
 

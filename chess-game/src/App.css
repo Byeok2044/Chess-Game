@@ -30,7 +30,6 @@ body {
   flex-direction: column;
 }
 
-/* ─── Header ─── */
 .header {
   display: flex;
   align-items: center;
@@ -102,7 +101,7 @@ body {
 }
 .btn-primary:hover { opacity: 0.85; }
 
-/* ─── Settings panel ─── */
+
 .settings-bar {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -187,7 +186,7 @@ body {
 }
 .toggle.on .toggle-thumb { transform: translateX(17px); }
 
-/* ─── Main layout ─── */
+
 .main {
   flex: 1;
   display: flex;
@@ -203,7 +202,7 @@ body {
   gap: 8px;
 }
 
-/* ─── Player bars ─── */
+
 .player-bar {
   display: flex;
   align-items: center;
@@ -284,7 +283,7 @@ body {
   40% { opacity: 1; transform: scale(1); }
 }
 
-/* ─── Board ─── */
+
 .board {
   width: min(520px, calc(100vw - 56px));
   aspect-ratio: 1;
@@ -360,7 +359,6 @@ body {
 .light .coord { color: var(--dark-sq); }
 .dark  .coord { color: var(--light-sq); }
 
-/* ─── Promotion modal ─── */
 .promotion-overlay {
   position: absolute;
   inset: 0;
@@ -412,7 +410,7 @@ body {
 .promo-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
 .promo-btn .piece { font-size: 34px; }
 
-/* ─── Side panel ─── */
+
 .side-panel {
   width: 220px;
   padding-top: 50px;
@@ -500,7 +498,6 @@ body {
   color: var(--accent);
 }
 
-/* ─── Responsive ─── */
 @media (max-width: 700px) {
   .main {
     flex-direction: column;
