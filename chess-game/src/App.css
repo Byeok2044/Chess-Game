@@ -31,7 +31,6 @@ body {
   flex-direction: column;
 }
 
-/* Header */
 .header {
   display: flex;
   align-items: center;
@@ -64,6 +63,7 @@ body {
 .header-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-ghost {
@@ -77,7 +77,7 @@ body {
   font-family: inherit;
   transition: all 0.15s;
 }
-.btn-ghost:hover {
+.btn-ghost:hover, .btn-ghost.active {
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -97,7 +97,50 @@ body {
 }
 .btn-primary:hover { opacity: 0.85; }
 
-/* Main layout */
+.settings-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 28px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle {
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.toggle.on .toggle-thumb { transform: translateX(18px); }
+
 .main {
   flex: 1;
   display: flex;
@@ -113,12 +156,12 @@ body {
   gap: 10px;
 }
 
-/* Player bar */
 .player-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 4px;
+  gap: 8px;
 }
 
 .player-info {
@@ -140,6 +183,11 @@ body {
 
 .white-avatar { background: #f0e8d8; }
 .black-avatar { background: var(--surface2); border: 1px solid var(--border); }
+.ai-avatar {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  font-size: 18px;
+}
 
 .player-name {
   font-size: 14px;
@@ -157,6 +205,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 1px;
+  flex: 1;
 }
 
 .captured {
@@ -164,7 +213,29 @@ body {
   opacity: 0.6;
 }
 
-/* Board */
+
+.thinking-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+}
+.thinking-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: thinking 1.2s ease-in-out infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes thinking {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+
 .board {
   width: min(520px, calc(100vw - 56px));
   aspect-ratio: 1;
@@ -195,7 +266,7 @@ body {
 .square.selected { background: var(--selected) !important; }
 .square.in-check { background: var(--check) !important; }
 
-/* Pieces */
+
 .piece {
   font-size: clamp(24px, 5.5vw, 44px);
   line-height: 1;
@@ -210,7 +281,7 @@ body {
 .piece.black { color: var(--black-piece); text-shadow: 0 1px 2px rgba(255,255,255,0.1); }
 .square:hover .piece { transform: translateY(-1px); }
 
-/* Move indicators */
+
 .move-dot {
   position: absolute;
   width: 28%;
@@ -230,7 +301,7 @@ body {
   pointer-events: none;
 }
 
-/* Coordinates */
+
 .coord {
   position: absolute;
   font-size: 10px;
@@ -244,7 +315,7 @@ body {
 .light .coord { color: var(--dark-sq); }
 .dark  .coord { color: var(--light-sq); }
 
-/* Promotion modal */
+
 .promotion-overlay {
   position: absolute;
   inset: 0;
@@ -296,7 +367,7 @@ body {
 .promo-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
 .promo-btn .piece { font-size: 32px; }
 
-/* Side panel */
+
 .side-panel {
   width: 220px;
   padding-top: 46px;
@@ -334,13 +405,12 @@ body {
 
 .move-history h3 {
   font-family: 'Crimson Pro', serif;
-  font-size: 16px;
-  font-weight: 400;
   color: var(--text-muted);
   margin-bottom: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   font-size: 11px;
+  font-weight: 400;
 }
 
 .moves-grid {
@@ -385,7 +455,6 @@ body {
   color: var(--accent);
 }
 
-/* Responsive */
 @media (max-width: 700px) {
   .main {
     flex-direction: column;
@@ -401,4 +470,6 @@ body {
   }
   .move-history { flex: 1; min-width: 200px; }
   .status-card { flex: 1; }
+  .header-actions { gap: 4px; }
+  .btn-ghost { padding: 6px 10px; font-size: 12px; }
 }

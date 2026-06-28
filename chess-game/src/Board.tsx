@@ -16,15 +16,17 @@ interface Props {
   onSquareClick: (r: number, c: number) => void;
   onPromotion: (type: PieceType) => void;
   flipped: boolean;
+  showCoordinates: boolean;
+  showValidMoves: boolean;
 }
 
-export default function Board({ state, onSquareClick, onPromotion, flipped }: Props) {
+export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves }: Props) {
   const { board, selected, validMoves, promotionPending } = state;
-  
+
   const rows = flipped ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
   const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
 
-  const isValidMove = (r: number, c: number) => validMoves.some(([vr, vc]) => vr === r && vc === c);
+  const isValidMove = (r: number, c: number) => showValidMoves && validMoves.some(([vr, vc]) => vr === r && vc === c);
   const isSelected = (r: number, c: number) => selected?.[0] === r && selected?.[1] === c;
   const isInCheck = (r: number, c: number) => {
     const p = board[r][c];
@@ -42,7 +44,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped }: Pr
               const valid = isValidMove(r, c);
               const sel = isSelected(r, c);
               const check = isInCheck(r, c);
-              
+
               return (
                 <div
                   key={c}
@@ -62,12 +64,10 @@ export default function Board({ state, onSquareClick, onPromotion, flipped }: Pr
                       {pieceChar(piece)}
                     </span>
                   )}
-                  {/* Rank labels */}
-                  {c === (flipped ? 7 : 0) && (
+                  {showCoordinates && c === (flipped ? 7 : 0) && (
                     <span className="coord rank">{8 - r}</span>
                   )}
-                  {/* File labels */}
-                  {r === (flipped ? 0 : 7) && (
+                  {showCoordinates && r === (flipped ? 0 : 7) && (
                     <span className="coord file">{String.fromCharCode(97 + c)}</span>
                   )}
                 </div>
@@ -77,7 +77,6 @@ export default function Board({ state, onSquareClick, onPromotion, flipped }: Pr
         ))}
       </div>
 
-      {/* Promotion modal */}
       {promotionPending && (
         <div className="promotion-overlay">
           <div className="promotion-modal">

@@ -56,7 +56,7 @@ function inBounds(r: number, c: number) {
   return r >= 0 && r < 8 && c >= 0 && c < 8;
 }
 
-function findKing(board: Board, color: Color): [number, number] {
+export function findKing(board: Board, color: Color): [number, number] {
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++)
       if (board[r][c]?.type === 'king' && board[r][c]?.color === color)
@@ -64,8 +64,7 @@ function findKing(board: Board, color: Color): [number, number] {
   return [-1, -1];
 }
 
-function isAttacked(board: Board, r: number, c: number, by: Color): boolean {
-  // Check all enemy pieces
+export function isAttacked(board: Board, r: number, c: number, by: Color): boolean {
   for (let er = 0; er < 8; er++) {
     for (let ec = 0; ec < 8; ec++) {
       const p = board[er][ec];
@@ -77,7 +76,7 @@ function isAttacked(board: Board, r: number, c: number, by: Color): boolean {
   return false;
 }
 
-function rawMoves(board: Board, r: number, c: number, enPassant: [number, number] | null, castling: GameState['castlingRights']): [number, number][] {
+export function rawMoves(board: Board, r: number, c: number, enPassant: [number, number] | null, castling: GameState['castlingRights']): [number, number][] {
   const piece = board[r][c];
   if (!piece) return [];
   const moves: [number, number][] = [];
@@ -116,7 +115,6 @@ function rawMoves(board: Board, r: number, c: number, enPassant: [number, number
       const nr = r + dr, nc = c + dc;
       if (inBounds(nr, nc) && board[nr][nc]?.color !== color) moves.push([nr, nc]);
     }
-    // Castling
     const row = color === 'white' ? 7 : 0;
     const enemy = color === 'white' ? 'black' : 'white';
     if (r === row && c === 4) {
@@ -149,7 +147,7 @@ function rawMoves(board: Board, r: number, c: number, enPassant: [number, number
   return moves;
 }
 
-function applyMove(board: Board, from: [number, number], to: [number, number], enPassant: [number, number] | null): { board: Board; captured: Piece | null; enPassantTarget: [number, number] | null } {
+export function applyMove(board: Board, from: [number, number], to: [number, number], enPassant: [number, number] | null): { board: Board; captured: Piece | null; enPassantTarget: [number, number] | null } {
   const newBoard = board.map(row => [...row]);
   const [fr, fc] = from;
   const [tr, tc] = to;
@@ -157,21 +155,18 @@ function applyMove(board: Board, from: [number, number], to: [number, number], e
   let captured: Piece | null = newBoard[tr][tc];
   let newEnPassant: [number, number] | null = null;
 
-  // En passant capture
   if (piece.type === 'pawn' && enPassant && enPassant[0] === tr && enPassant[1] === tc) {
     const capRow = fr;
     captured = newBoard[capRow][tc];
     newBoard[capRow][tc] = null;
   }
 
-  // Castling rook move
   if (piece.type === 'king' && Math.abs(tc - fc) === 2) {
     const row = fr;
     if (tc === 6) { newBoard[row][5] = newBoard[row][7]; newBoard[row][7] = null; }
     else { newBoard[row][3] = newBoard[row][0]; newBoard[row][0] = null; }
   }
 
-  // Double pawn push → en passant target
   if (piece.type === 'pawn' && Math.abs(tr - fr) === 2) {
     newEnPassant = [(fr + tr) / 2, fc];
   }
@@ -203,7 +198,6 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
   const piece = state.board[fr][fc]!;
   const { board: newBoard, captured, enPassantTarget } = applyMove(state.board, from, to, state.enPassantTarget);
 
-  // Promotion
   const isPawnPromotion = piece.type === 'pawn' && (tr === 0 || tr === 7);
   if (isPawnPromotion && !promoteTo) {
     return { ...state, board: newBoard, promotionPending: [tr, tc], selected: null, validMoves: [] };
@@ -212,7 +206,6 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
     newBoard[tr][tc] = { type: promoteTo, color: piece.color };
   }
 
-  // Update castling rights
   const cr = { ...state.castlingRights };
   if (piece.type === 'king') {
     if (piece.color === 'white') { cr.whiteKingside = false; cr.whiteQueenside = false; }
@@ -228,7 +221,6 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
   const nextTurn: Color = state.turn === 'white' ? 'black' : 'white';
   const enemy = state.turn;
 
-  // Move notation
   const notation = `${piece.type === 'pawn' ? '' : piece.type[0].toUpperCase()}${algebraic(fr, fc)}-${algebraic(tr, tc)}`;
 
   const capturedByWhite = [...state.capturedByWhite];
@@ -238,11 +230,9 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
     else capturedByBlack.push(captured);
   }
 
-  // Check game status
   const [nkr, nkc] = findKing(newBoard, nextTurn);
   const inCheck = isAttacked(newBoard, nkr, nkc, enemy);
   
-  // Check for any legal moves
   let hasLegal = false;
   outer: for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {

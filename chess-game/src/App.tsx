@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { initGame, legalMoves, makeMove } from './Chess.ts';
 import type { GameState, PieceType } from './Chess.ts';
 import Board from './Board.tsx';
+import Menu from './Menu.tsx';
+import { getBestMove } from './Ai.ts';
 import './app.css';
 
 const PIECE_VALUES: Record<string, number> = {
@@ -14,26 +16,74 @@ function materialScore(state: GameState) {
   return { white, black };
 }
 
+type GameMode = 'menu' | 'playing';
+
 export default function App() {
+  const [screen, setScreen] = useState<GameMode>('menu');
+  const [vsAI, setVsAI] = useState(false);
+  const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white');
   const [state, setState] = useState<GameState>(initGame());
   const [flipped, setFlipped] = useState(false);
   const [pendingFrom, setPendingFrom] = useState<[number, number] | null>(null);
+  const [showHints, setShowHints] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [aiThinking, setAiThinking] = useState(false);
+  const aiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // AI move trigger
+  useEffect(() => {
+    if (!vsAI || screen !== 'playing') return;
+    const aiColor = playerColor === 'white' ? 'black' : 'white';
+    if (state.turn !== aiColor) return;
+    if (state.status === 'checkmate' || state.status === 'stalemate') return;
+    if (state.promotionPending) return;
+
+    setAiThinking(true);
+    aiTimeoutRef.current = setTimeout(() => {
+      const move = getBestMove(state, 3);
+      if (move) {
+        const newState = makeMove(state, move.from, move.to, move.promote);
+        setState(newState);
+      }
+      setAiThinking(false);
+    }, 300);
+
+    return () => {
+      if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+    };
+  }, [state, vsAI, playerColor, screen]);
+
+  function handleStart(mode: 'two-player' | 'vs-ai', color: 'white' | 'black') {
+    setVsAI(mode === 'vs-ai');
+    setPlayerColor(color);
+    setFlipped(mode === 'vs-ai' && color === 'black');
+    setState(initGame());
+    setPendingFrom(null);
+    setScreen('playing');
+  }
 
   function handleSquareClick(r: number, c: number) {
     if (state.status === 'checkmate' || state.status === 'stalemate') return;
     if (state.promotionPending) return;
 
+    // Block input during AI's turn
+    if (vsAI) {
+      const aiColor = playerColor === 'white' ? 'black' : 'white';
+      if (state.turn === aiColor) return;
+    }
+
     const piece = state.board[r][c];
 
-    // If a piece is selected and we click a valid move
     if (state.selected) {
       const [sr, sc] = state.selected;
-      const isValid = state.validMoves.some(([vr, vc]) => vr === r && vc === c);
-      
+      // Always compute legal moves for this selected piece — regardless of showHints
+      const movesForSelected = legalMoves(state, sr, sc);
+      const isValid = movesForSelected.some(([vr, vc]) => vr === r && vc === c);
+
       if (isValid) {
         const movingPiece = state.board[sr][sc]!;
         const isPawnPromotion = movingPiece.type === 'pawn' && (r === 0 || r === 7);
-        
+
         if (isPawnPromotion) {
           setPendingFrom([sr, sc]);
           const newState = makeMove(state, [sr, sc], [r, c]);
@@ -47,7 +97,7 @@ export default function App() {
       // Clicking own piece → reselect
       if (piece && piece.color === state.turn) {
         const moves = legalMoves(state, r, c);
-        setState({ ...state, selected: [r, c], validMoves: moves });
+        setState({ ...state, selected: [r, c], validMoves: showHints ? moves : [] });
         return;
       }
 
@@ -59,6 +109,8 @@ export default function App() {
     // Select a piece
     if (piece && piece.color === state.turn) {
       const moves = legalMoves(state, r, c);
+      // Store validMoves in state — show them only if hints are on
+      // BUT we always keep them internally for move validation
       setState({ ...state, selected: [r, c], validMoves: moves });
     }
   }
@@ -73,20 +125,41 @@ export default function App() {
   }
 
   function resetGame() {
+    if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+    setAiThinking(false);
     setState(initGame());
     setPendingFrom(null);
+  }
+
+  function goToMenu() {
+    if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+    setAiThinking(false);
+    setScreen('menu');
+  }
+
+  if (screen === 'menu') {
+    return <Menu onStart={handleStart} />;
   }
 
   const scores = materialScore(state);
   const whiteLead = scores.white - scores.black;
   const blackLead = scores.black - scores.white;
 
+  const aiColor = playerColor === 'white' ? 'black' : 'white';
+  const blackLabel = vsAI ? (aiColor === 'black' ? 'Computer' : 'You') : 'Black';
+  const whiteLabel = vsAI ? (playerColor === 'white' ? 'You' : 'Computer') : 'White';
+
   const statusMsg = {
     checkmate: `Checkmate — ${state.turn === 'white' ? 'Black' : 'White'} wins`,
     stalemate: 'Stalemate — Draw',
     check: `${state.turn === 'white' ? 'White' : 'Black'} is in check`,
-    playing: `${state.turn === 'white' ? 'White' : 'Black'} to move`,
+    playing: aiThinking
+      ? 'Computer is thinking…'
+      : `${state.turn === 'white' ? 'White' : 'Black'} to move`,
   }[state.status];
+
+  // Pass validMoves to Board only when hints are enabled
+  const displayState = showHints ? state : { ...state, validMoves: [] };
 
   return (
     <div className="app">
@@ -96,24 +169,51 @@ export default function App() {
           <span className="logo-text">Chess</span>
         </div>
         <div className="header-actions">
+          <button className="btn-ghost" onClick={goToMenu}>
+            ← Menu
+          </button>
           <button className="btn-ghost" onClick={() => setFlipped(f => !f)} title="Flip board">
             ↕ Flip
           </button>
           <button className="btn-ghost" onClick={resetGame}>
             ↺ New game
           </button>
+          <button
+            className={`btn-ghost ${showSettings ? 'active' : ''}`}
+            onClick={() => setShowSettings(s => !s)}
+            title="Settings"
+          >
+            ⚙ Settings
+          </button>
         </div>
       </header>
 
+      {showSettings && (
+        <div className="settings-bar">
+          <label className="setting-toggle">
+            <span>Show valid moves</span>
+            <div
+              className={`toggle ${showHints ? 'on' : ''}`}
+              onClick={() => setShowHints(h => !h)}
+              role="switch"
+              aria-checked={showHints}
+            >
+              <div className="toggle-thumb" />
+            </div>
+          </label>
+        </div>
+      )}
+
       <main className="main">
         <div className="game-layout">
-
           {/* Black side info */}
           <div className="player-bar">
             <div className="player-info">
-              <div className="player-avatar black-avatar">♚</div>
+              <div className={`player-avatar ${vsAI && aiColor === 'black' ? 'ai-avatar' : 'black-avatar'}`}>
+                {vsAI && aiColor === 'black' ? '🤖' : '♚'}
+              </div>
               <div>
-                <div className="player-name">Black</div>
+                <div className="player-name">{blackLabel}</div>
                 {blackLead > 0 && <div className="material-lead">+{blackLead}</div>}
               </div>
             </div>
@@ -122,21 +222,24 @@ export default function App() {
                 <span key={i} className="captured">{['♔','♕','♖','♗','♘','♙'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}</span>
               ))}
             </div>
+            {vsAI && aiThinking && aiColor === 'black' && (
+              <div className="thinking-dots"><span /><span /><span /></div>
+            )}
           </div>
 
           <Board
-            state={state}
+            state={displayState}
             onSquareClick={handleSquareClick}
             onPromotion={handlePromotion}
-            flipped={flipped}
-          />
+            flipped={flipped} showCoordinates={false} showValidMoves={false}          />
 
-          {/* White side info */}
           <div className="player-bar">
             <div className="player-info">
-              <div className="player-avatar white-avatar">♔</div>
+              <div className={`player-avatar ${vsAI && aiColor === 'white' ? 'ai-avatar' : 'white-avatar'}`}>
+                {vsAI && aiColor === 'white' ? '🤖' : '♔'}
+              </div>
               <div>
-                <div className="player-name">White</div>
+                <div className="player-name">{whiteLabel}</div>
                 {whiteLead > 0 && <div className="material-lead">+{whiteLead}</div>}
               </div>
             </div>
@@ -145,6 +248,9 @@ export default function App() {
                 <span key={i} className="captured">{['♚','♛','♜','♝','♞','♟'][['king','queen','rook','bishop','knight','pawn'].indexOf(p.type)]}</span>
               ))}
             </div>
+            {vsAI && aiThinking && aiColor === 'white' && (
+              <div className="thinking-dots"><span /><span /><span /></div>
+            )}
           </div>
         </div>
 
