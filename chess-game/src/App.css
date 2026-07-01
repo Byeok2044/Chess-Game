@@ -517,3 +517,13 @@ body {
   .btn-ghost { padding: 6px 10px; font-size: 12px; }
   .settings-grid { grid-template-columns: 1fr; }
 }
+
+.auth-input {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+}

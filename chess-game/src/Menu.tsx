@@ -2,9 +2,10 @@ import './menu.css';
 
 interface Props {
   onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black') => void;
+  onPlayOnline: () => void;
 }
 
-export default function Menu({ onStart }: Props) {
+export default function Menu({ onStart, onPlayOnline }: Props) {
   return (
     <div className="menu-root">
       <div className="menu-bg">
@@ -56,6 +57,16 @@ export default function Menu({ onStart }: Props) {
               </button>
             </div>
           </div>
+
+          <button className="menu-card" onClick={onPlayOnline}>
+            <div className="menu-card-pieces">
+              <span className="menu-card-piece white">♔</span>
+              <span className="menu-card-vs">vs</span>
+              <span className="menu-card-piece black">♚</span>
+            </div>
+            <div className="menu-card-label">Play Online</div>
+            <div className="menu-card-desc">Challenge a friend remotely with an invite code</div>
+          </button>
         </div>
       </div>
     </div>
