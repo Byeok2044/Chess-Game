@@ -5,8 +5,9 @@ import MoveHistory from './components/MoveHistory.tsx';
 import PlayerBar from './components/PlayerBar.tsx';
 import { legalMoves, makeMove } from './Chess.ts';
 import type { PieceType, GameState } from './Chess.ts';
-import { useMultiplayerGame, pushMove } from './lib/gameSync.ts';
-import { capturedIconsFor } from './utils/capturedIcons.ts';
+import { useMultiplayerGame, usePresenceAbandonment, pushMove, resignGame } from './lib/gameSync.ts';
+import { useAuth } from './lib/AuthContext.tsx';
+import { capturedIconsFor } from './utils/CapturedIcons.ts';
 import { materialScore } from './utils/Material.ts';
 
 interface Props {
@@ -16,7 +17,9 @@ interface Props {
 }
 
 export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) {
+  const { session } = useAuth();
   const game = useMultiplayerGame(gameId);
+  const { opponentOnline } = usePresenceAbandonment(gameId, game, playerColor, session?.user?.id ?? null);
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [validMoves, setValidMoves] = useState<[number, number][]>([]);
   const [pendingFrom, setPendingFrom] = useState<[number, number] | null>(null);
@@ -53,6 +56,16 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   const boardState = game.board_state;
   const myTurn = game.turn === playerColor && game.status === 'active';
   const displayState: GameState = { ...boardState, selected, validMoves };
+  const gameOver = game.status === 'finished' || game.status === 'abandoned';
+
+  async function handleLeave() {
+    if (game?.status === 'active') {
+      const ok = window.confirm('Leaving now forfeits the game. Are you sure?');
+      if (!ok) return;
+      await resignGame(gameId, playerColor);
+    }
+    onExit();
+  }
 
   function handleSquareClick(r: number, c: number) {
     if (!myTurn) return;
@@ -107,6 +120,14 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   const whiteLead = scores.white - scores.black;
   const blackLead = scores.black - scores.white;
 
+  const resultMessage = gameOver
+    ? game.winner === 'draw'
+      ? 'Draw'
+      : game.winner === playerColor
+        ? (game.status === 'abandoned' ? 'You win — your opponent disconnected' : 'You win — your opponent resigned')
+        : (game.status === 'abandoned' ? 'You lose — you disconnected' : 'You lose — you resigned')
+    : null;
+
   return (
     <div className="app">
       <header className="header">
@@ -115,9 +136,18 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
           <span className="logo-text">Chess</span>
         </div>
         <div className="header-actions">
-          <button className="btn-ghost" onClick={onExit}>← Leave game</button>
+          <button className="btn-ghost" onClick={handleLeave}>
+            {gameOver ? '← Back to menu' : '← Leave game'}
+          </button>
         </div>
       </header>
+
+      {game?.status === 'active' && !opponentOnline && (
+        <div className="status-card check" style={{ margin: '12px 24px 0', borderRadius: 10 }}>
+          <div className="status-dot" />
+          <span>Your opponent seems to have disconnected — you'll win by forfeit if they don't return soon.</span>
+        </div>
+      )}
 
       <main className="main">
         <div className="game-layout">
@@ -150,7 +180,17 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
         </div>
 
         <aside className="side-panel">
-          <StatusCard state={boardState} aiThinking={false} onPlayAgain={onExit} />
+          {gameOver ? (
+            <>
+              <div className="status-card checkmate">
+                <div className="status-dot" />
+                <span>{resultMessage}</span>
+              </div>
+              <button className="btn-primary" onClick={onExit}>Back to menu</button>
+            </>
+          ) : (
+            <StatusCard state={boardState} aiThinking={false} onPlayAgain={onExit} />
+          )}
           <MoveHistory moveHistory={boardState.moveHistory} />
         </aside>
       </main>
