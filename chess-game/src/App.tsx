@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Board from './Board.tsx';
 import Menu from './Menu.tsx';
 import Settings from './Settings.tsx';
@@ -5,20 +6,61 @@ import GameHeader from './components/GameHeader.tsx';
 import PlayerBar from './components/PlayerBar.tsx';
 import MoveHistory from './components/MoveHistory.tsx';
 import StatusCard from './components/StatusCard.tsx';
+import OnlineLobby from './OnlineLobby.tsx';
+import MultiplayerGame from './MultiplayerGame.tsx';
 import { useChessGame } from './hooks/useChessGame.ts';
 import { materialScore } from './utils/Material.ts';
 import { capturedIconsFor } from './utils/CapturedIcons.ts';
+import type { Color } from './Chess.ts';
 import './App.css';
 
+type View = 'menu' | 'local' | 'online-lobby' | 'multiplayer';
+
 export default function App() {
+  const [view, setView] = useState<View>('menu');
+  const [multiplayerGameId, setMultiplayerGameId] = useState<string | null>(null);
+  const [multiplayerColor, setMultiplayerColor] = useState<Color>('white');
+
   const {
-    screen, vsAI, playerColor, state, flipped,
+    vsAI, playerColor, state, flipped,
     showHints, showCoords, showSettings, aiThinking,
     setShowHints, setShowCoords, setShowSettings, setFlipped,
     handleStart, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
 
-  if (screen === 'menu') return <Menu onStart={handleStart} />;
+  function startLocal(mode: 'two-player' | 'vs-ai', color: Color) {
+    handleStart(mode, color);
+    setView('local');
+  }
+
+  function backToMenu() {
+    goToMenu();
+    setView('menu');
+  }
+
+  function enterMultiplayerGame(gameId: string, color: Color) {
+    setMultiplayerGameId(gameId);
+    setMultiplayerColor(color);
+    setView('multiplayer');
+  }
+
+  if (view === 'menu') {
+    return <Menu onStart={startLocal} onPlayOnline={() => setView('online-lobby')} />;
+  }
+
+  if (view === 'online-lobby') {
+    return <OnlineLobby onEnterGame={enterMultiplayerGame} onBack={() => setView('menu')} />;
+  }
+
+  if (view === 'multiplayer' && multiplayerGameId) {
+    return (
+      <MultiplayerGame
+        gameId={multiplayerGameId}
+        playerColor={multiplayerColor}
+        onExit={() => { setMultiplayerGameId(null); setView('menu'); }}
+      />
+    );
+  }
 
   const scores = materialScore(state);
   const whiteLead = scores.white - scores.black;
@@ -32,7 +74,7 @@ export default function App() {
     <div className="app">
       <GameHeader
         showSettings={showSettings}
-        onMenu={goToMenu}
+        onMenu={backToMenu}
         onNewGame={resetGame}
         onToggleSettings={() => setShowSettings((s) => !s)}
       />
