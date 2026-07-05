@@ -27,6 +27,15 @@ export function useChessGame() {
     setScreen('playing');
   }
 
+  function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: GameState) {
+    setVsAI(mode === 'vs-ai');
+    setPlayerColor(color);
+    setFlipped(mode === 'vs-ai' && color === 'black');
+    setState(savedState);
+    setPendingFrom(null);
+    setScreen('playing');
+  }
+
   function handleSquareClick(r: number, c: number) {
     if (state.status === 'checkmate' || state.status === 'stalemate') return;
     if (state.promotionPending) return;
@@ -98,6 +107,7 @@ export function useChessGame() {
     setShowCoords,
     setShowSettings,
     handleStart,
+    resumeGame,
     handleSquareClick,
     handlePromotion,
     resetGame,

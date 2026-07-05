@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Board from './Board.tsx';
 import Menu from './Menu.tsx';
 import Settings from './Settings.tsx';
@@ -11,25 +11,88 @@ import MultiplayerGame from './MultiplayerGame.tsx';
 import { useChessGame } from './hooks/useChessGame.ts';
 import { materialScore } from './utils/Material.ts';
 import { capturedIconsFor } from './utils/CapturedIcons.ts';
-import type { Color } from './Chess.ts';
+import { useAuth } from './lib/AuthContext.tsx';
+import { saveGame, listSavedGames, deleteSavedGame } from './lib/gameSync.ts';
+import { saveGuestGame, loadGuestGame, clearGuestGame } from './lib/localSave.ts';
+import type { Color, GameState } from './Chess.ts';
 import './App.css';
 
 type View = 'menu' | 'local' | 'online-lobby' | 'multiplayer';
+
+interface ResumableGame {
+  source: 'guest' | 'cloud';
+  id?: string;
+  mode: 'two-player' | 'vs-ai';
+  aiColor: 'white' | 'black' | null;
+  state: GameState;
+}
 
 export default function App() {
   const [view, setView] = useState<View>('menu');
   const [multiplayerGameId, setMultiplayerGameId] = useState<string | null>(null);
   const [multiplayerColor, setMultiplayerColor] = useState<Color>('white');
+  const [resumable, setResumable] = useState<ResumableGame | null>(null);
+  const { session } = useAuth();
+  const savedGameIdRef = useRef<string | undefined>(undefined);
 
   const {
     vsAI, playerColor, state, flipped,
     showHints, showCoords, showSettings, aiThinking,
     setShowHints, setShowCoords, setShowSettings, setFlipped,
-    handleStart, handleSquareClick, handlePromotion, resetGame, goToMenu,
+    handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
 
+  useEffect(() => {
+    if (view !== 'menu') return;
+    let cancelled = false;
+
+    if (session?.user) {
+      listSavedGames(session.user.id).then(({ data }) => {
+        if (cancelled) return;
+        const latest = data[0];
+        setResumable(
+          latest
+            ? { source: 'cloud', id: latest.id, mode: latest.mode, aiColor: latest.ai_color, state: latest.board_state }
+            : null
+        );
+      });
+    } else {
+      const guest = loadGuestGame();
+      setResumable(guest ? { source: 'guest', mode: guest.mode, aiColor: guest.aiColor, state: guest.state } : null);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [view, session?.user?.id]);
+
+  function discardActiveSave() {
+    if (savedGameIdRef.current) {
+      deleteSavedGame(savedGameIdRef.current);
+      savedGameIdRef.current = undefined;
+    }
+    clearGuestGame();
+  }
+
   function startLocal(mode: 'two-player' | 'vs-ai', color: Color) {
+    discardActiveSave();
     handleStart(mode, color);
+    setView('local');
+  }
+
+  function handleNewGame() {
+    discardActiveSave();
+    resetGame();
+  }
+
+  function handleResume() {
+    if (!resumable) return;
+    const color: Color =
+      resumable.mode === 'vs-ai'
+        ? resumable.aiColor === 'white' ? 'black' : 'white'
+        : 'white';
+    savedGameIdRef.current = resumable.source === 'cloud' ? resumable.id : undefined;
+    resumeGame(resumable.mode, color, resumable.state);
     setView('local');
   }
 
@@ -44,8 +107,59 @@ export default function App() {
     setView('multiplayer');
   }
 
+  useEffect(() => {
+    if (view !== 'local') return;
+    if (state.moveHistory.length === 0) return;
+
+    const mode: 'two-player' | 'vs-ai' = vsAI ? 'vs-ai' : 'two-player';
+    const aiColorForSave: Color | null = vsAI ? (playerColor === 'white' ? 'black' : 'white') : null;
+    const finished = state.status === 'checkmate' || state.status === 'stalemate';
+
+    if (!session?.user) {
+      if (finished) {
+        clearGuestGame();
+        return;
+      }
+      const timeout = setTimeout(() => {
+        saveGuestGame(mode, aiColorForSave, state);
+      }, 800);
+      return () => clearTimeout(timeout);
+    }
+
+    if (finished) {
+      if (savedGameIdRef.current) {
+        deleteSavedGame(savedGameIdRef.current);
+        savedGameIdRef.current = undefined;
+      }
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      saveGame(session.user!.id, state, mode, aiColorForSave, 'Untitled game', savedGameIdRef.current).then(
+        ({ data }) => {
+          if (data) savedGameIdRef.current = data.id;
+        }
+      );
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [state, view, vsAI, playerColor, session?.user?.id]);
+
+  const resumeLabel = resumable
+    ? resumable.mode === 'vs-ai'
+      ? `vs Computer · ${resumable.state.moveHistory.length} moves played`
+      : `Two Players · ${resumable.state.moveHistory.length} moves played`
+    : null;
+
   if (view === 'menu') {
-    return <Menu onStart={startLocal} onPlayOnline={() => setView('online-lobby')} />;
+    return (
+      <Menu
+        onStart={startLocal}
+        onPlayOnline={() => setView('online-lobby')}
+        resumeLabel={resumeLabel}
+        onResume={handleResume}
+      />
+    );
   }
 
   if (view === 'online-lobby') {
@@ -75,7 +189,7 @@ export default function App() {
       <GameHeader
         showSettings={showSettings}
         onMenu={backToMenu}
-        onNewGame={resetGame}
+        onNewGame={handleNewGame}
         onToggleSettings={() => setShowSettings((s) => !s)}
       />
 
@@ -121,7 +235,7 @@ export default function App() {
         </div>
 
         <aside className="side-panel">
-          <StatusCard state={state} aiThinking={aiThinking} onPlayAgain={resetGame} />
+          <StatusCard state={state} aiThinking={aiThinking} onPlayAgain={handleNewGame} />
           <MoveHistory moveHistory={state.moveHistory} />
         </aside>
       </main>

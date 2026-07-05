@@ -3,9 +3,11 @@ import './menu.css';
 interface Props {
   onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black') => void;
   onPlayOnline: () => void;
+  resumeLabel: string | null;
+  onResume: () => void;
 }
 
-export default function Menu({ onStart, onPlayOnline }: Props) {
+export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume }: Props) {
   return (
     <div className="menu-root">
       <div className="menu-bg">
@@ -22,6 +24,13 @@ export default function Menu({ onStart, onPlayOnline }: Props) {
           <h1 className="menu-title">Chess</h1>
         </div>
         <p className="menu-subtitle">Choose your game mode</p>
+
+        {resumeLabel && (
+          <button className="menu-card" style={{ width: '100%' }} onClick={onResume}>
+            <div className="menu-card-label">↻ Resume game</div>
+            <div className="menu-card-desc">{resumeLabel}</div>
+          </button>
+        )}
 
         <div className="menu-cards">
           <button className="menu-card" onClick={() => onStart('two-player', 'white')}>
