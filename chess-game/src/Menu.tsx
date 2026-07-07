@@ -1,4 +1,4 @@
-import './menu.css';
+import './Menu.css';
 
 interface Props {
   onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black') => void;
