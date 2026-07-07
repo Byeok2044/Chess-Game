@@ -1,5 +1,5 @@
 import type { GameState, Board, Color, PieceType } from './Chess.ts';
-import { rawMoves, applyMove, findKing, isAttacked, legalMoves, makeMove } from './Chess.ts';
+import { legalMoves, makeMove } from './Chess.ts'; 
 
 const PIECE_VALUES: Record<PieceType, number> = {
   pawn: 100, knight: 320, bishop: 330, rook: 500, queen: 900, king: 20000,

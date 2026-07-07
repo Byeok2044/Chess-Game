@@ -7,7 +7,7 @@ import { legalMoves, makeMove } from './Chess.ts';
 import type { PieceType, GameState } from './Chess.ts';
 import { useMultiplayerGame, usePresenceAbandonment, pushMove, resignGame } from './lib/gameSync.ts';
 import { useAuth } from './lib/AuthContext.tsx';
-import { capturedIconsFor } from './utils/CapturedIcons.ts';
+import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { materialScore } from './utils/Material.ts';
 
 interface Props {

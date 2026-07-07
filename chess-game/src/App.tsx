@@ -10,7 +10,7 @@ import OnlineLobby from './OnlineLobby.tsx';
 import MultiplayerGame from './MultiplayerGame.tsx';
 import { useChessGame } from './hooks/useChessGame.ts';
 import { materialScore } from './utils/Material.ts';
-import { capturedIconsFor } from './utils/CapturedIcons.ts';
+import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import { saveGame, listSavedGames, deleteSavedGame } from './lib/gameSync.ts';
 import { saveGuestGame, loadGuestGame, clearGuestGame } from './lib/localSave.ts';
