@@ -14,6 +14,7 @@ import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import { saveGame, listSavedGames, deleteSavedGame } from './lib/gameSync.ts';
 import { saveGuestGame, loadGuestGame, clearGuestGame } from './lib/localSave.ts';
+import { BOARD_THEMES } from './GameSettings.ts';
 import type { Color, GameState } from './Chess.ts';
 import './App.css';
 
@@ -37,8 +38,8 @@ export default function App() {
 
   const {
     vsAI, playerColor, state, flipped,
-    showHints, showCoords, showSettings, aiThinking,
-    setShowHints, setShowCoords, setShowSettings, setFlipped,
+    showHints, showCoords, showSettings, boardTheme, aiThinking,
+    setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
     handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
 
@@ -198,9 +199,11 @@ export default function App() {
           showHints={showHints}
           showCoords={showCoords}
           flipped={flipped}
+          boardTheme={boardTheme}
           onToggleHints={() => setShowHints((h) => !h)}
           onToggleCoords={() => setShowCoords((c) => !c)}
           onToggleFlipped={() => setFlipped((f) => !f)}
+          onChangeBoardTheme={setBoardTheme}
         />
       )}
 
@@ -222,6 +225,7 @@ export default function App() {
             flipped={flipped}
             showCoordinates={showCoords}
             showValidMoves={showHints}
+            boardTheme={BOARD_THEMES[boardTheme]}
           />
 
           <PlayerBar

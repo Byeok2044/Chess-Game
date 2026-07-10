@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { GameState, Piece, PieceType } from './Chess.ts';
 
 const PIECES: Record<string, string> = {
@@ -18,9 +19,10 @@ interface Props {
   flipped: boolean;
   showCoordinates: boolean;
   showValidMoves: boolean;
+  boardTheme?: { light: string; dark: string };
 }
 
-export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves }: Props) {
+export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme }: Props) {
   const { board, selected, validMoves, promotionPending } = state;
 
   const rows = flipped ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
@@ -33,8 +35,12 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
     return p?.type === 'king' && p.color === state.turn && (state.status === 'check' || state.status === 'checkmate');
   };
 
+  const themeStyle = boardTheme
+    ? ({ '--light-sq': boardTheme.light, '--dark-sq': boardTheme.dark } as CSSProperties)
+    : undefined;
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', ...themeStyle }}>
       <div className="board">
         {rows.map((r) => (
           <div key={r} className="board-row">

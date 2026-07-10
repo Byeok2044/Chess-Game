@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { initGame, legalMoves, makeMove } from '../Chess.ts';
 import type { Color, GameState, PieceType } from '../Chess.ts';
+import { DEFAULT_SETTINGS } from '../GameSettings.ts';
+import type { BoardTheme } from '../GameSettings.ts';
 import { useAiOpponent } from './useAiOpponent.ts';
 
 export type GameMode = 'menu' | 'playing';
@@ -15,6 +17,7 @@ export function useChessGame() {
   const [showHints, setShowHints] = useState(true);
   const [showCoords, setShowCoords] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [boardTheme, setBoardTheme] = useState<BoardTheme>(DEFAULT_SETTINGS.boardTheme);
 
   const { aiThinking, cancelAiTurn } = useAiOpponent(state, setState, vsAI, playerColor, screen);
 
@@ -101,11 +104,13 @@ export function useChessGame() {
     showHints,
     showCoords,
     showSettings,
+    boardTheme,
     aiThinking,
     setFlipped,
     setShowHints,
     setShowCoords,
     setShowSettings,
+    setBoardTheme,
     handleStart,
     resumeGame,
     handleSquareClick,
