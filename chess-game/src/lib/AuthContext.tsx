@@ -13,6 +13,19 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function extractErrorMessage(error: unknown): string {
+  if (!error) return 'Something went wrong. Please try again.';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'object') {
+    const anyErr = error as Record<string, unknown>;
+    if (typeof anyErr.message === 'string' && anyErr.message) return anyErr.message;
+    if (typeof anyErr.error_description === 'string') return anyErr.error_description;
+    if (typeof anyErr.msg === 'string') return anyErr.msg;
+  }
+  return 'Something went wrong. Please try again.';
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -41,21 +54,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('id', session.user.id)
       .single()
-      .then(({ data }) => setProfile(data));
+      .then(({ data, error }) => {
+        if (error) console.error('Failed to load profile:', error);
+        setProfile(data);
+      });
   }, [session?.user?.id]);
 
   async function signUp(email: string, password: string, username: string) {
-    const { error } = await supabase.auth.signUp({
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) return 'Please choose a username.';
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } },
+      options: { data: { username: trimmedUsername } },
     });
-    return error?.message ?? null;
+
+    if (error) {
+      console.error('Sign up error:', error);
+      const message = extractErrorMessage(error);
+      // Postgres unique-violation from the profiles trigger often surfaces
+      // with this substring — give a friendlier message for it.
+      if (/duplicate key|already exists|unique/i.test(message)) {
+        return 'That username or email is already taken.';
+      }
+      return message;
+    }
+
+    if (data.user && !data.session) {
+      // Email confirmation is likely required — not an error, just info.
+      return null;
+    }
+
+    return null;
   }
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return error?.message ?? null;
+    if (error) {
+      console.error('Sign in error:', error);
+      return extractErrorMessage(error);
+    }
+    return null;
   }
 
   async function signOut() {
