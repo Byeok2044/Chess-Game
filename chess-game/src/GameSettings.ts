@@ -1,4 +1,4 @@
-export type BoardTheme = 'classic' | 'midnight' | 'forest' | 'coral' | 'neon';
+export type BoardTheme = 'ledger' | 'classic' | 'slate' | 'forest' | 'rosewood';
 export type PieceStyle = 'unicode' | 'minimal';
 export type TimeControl = 'none' | '1+0' | '3+2' | '5+0' | '10+0';
 
@@ -14,7 +14,7 @@ export interface GameSettings {
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  boardTheme: 'neon',
+  boardTheme: 'ledger',
   pieceStyle: 'unicode',
   showCoordinates: true,
   showValidMoves: true,
@@ -25,11 +25,11 @@ export const DEFAULT_SETTINGS: GameSettings = {
 };
 
 export const BOARD_THEMES: Record<BoardTheme, { light: string; dark: string; name: string }> = {
-  neon:     { light: '#1c2129', dark: '#0a0c11', name: 'Neon' },
-  classic:  { light: '#e8dfc4', dark: '#8b6e45', name: 'Classic' },
-  midnight: { light: '#b0bec5', dark: '#37474f', name: 'Midnight' },
-  forest:   { light: '#d4e8c4', dark: '#4a6741', name: 'Forest' },
-  coral:    { light: '#f2d0c4', dark: '#a05040', name: 'Coral' },
+  ledger:   { light: '#e8dcc0', dark: '#6b4a30', name: 'Ledger' },
+  classic:  { light: '#eee0c0', dark: '#8b6e45', name: 'Classic' },
+  slate:    { light: '#c9c4b6', dark: '#454a44', name: 'Slate' },
+  forest:   { light: '#dbe3c4', dark: '#3f5233', name: 'Forest' },
+  rosewood: { light: '#e9d3c0', dark: '#6b3230', name: 'Rosewood' },
 };
 
 export const TIME_CONTROLS: Record<TimeControl, { label: string; desc: string }> = {

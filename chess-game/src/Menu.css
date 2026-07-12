@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.08;
+  opacity: 0.07;
   pointer-events: none;
 }
 
@@ -24,7 +24,7 @@
   grid-template-columns: repeat(8, 1fr);
   width: min(90vw, 90vh);
   aspect-ratio: 1;
-  transform: rotate(12deg) scale(1.3);
+  transform: rotate(8deg) scale(1.3);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -44,7 +44,7 @@
   gap: var(--space-3);
   padding: var(--space-8) var(--space-4);
   width: 100%;
-  max-width: 620px;
+  max-width: 660px;
 }
 
 .menu-logo {
@@ -55,31 +55,45 @@
 }
 
 .menu-logo-piece {
-  font-size: 54px;
+  font-size: 50px;
   line-height: 1;
-  filter: drop-shadow(0 0 24px rgba(0, 255, 156, 0.9));
+  color: var(--accent);
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.4));
 }
 
 .menu-title {
-  font-family: var(--font-display, 'Space Mono', ui-monospace, monospace);
-  font-size: clamp(42px, 7vw, 68px);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-family: var(--font-display, 'Fraunces', Georgia, serif);
+  font-size: clamp(42px, 7vw, 66px);
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0;
   color: var(--text);
   margin: 0;
   line-height: 1;
-  text-shadow: 0 0 20px rgba(0, 255, 156, 0.35);
 }
 
 .menu-subtitle {
-  color: var(--accent2);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   margin-bottom: var(--space-3);
-  text-shadow: 0 0 10px rgba(255, 45, 117, 0.4);
+  position: relative;
+  padding-bottom: var(--space-3);
+}
+
+.menu-subtitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 1px;
+  background: var(--border);
+  box-shadow: 0 3px 0 -2px var(--border);
 }
 
 .menu-cards {
@@ -98,8 +112,8 @@
 
 .menu-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg, 8px);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg, 7px);
   padding: var(--space-6) var(--space-5) var(--space-5);
   cursor: pointer;
   display: flex;
@@ -109,14 +123,38 @@
   color: var(--text);
   font-family: inherit;
   text-align: center;
-  transition: border-color 0.18s, background 0.18s, transform 0.15s, box-shadow 0.18s;
+  position: relative;
+  transition: border-color 0.18s, background 0.18s, transform 0.15s;
+}
+
+/* brass corner ticks — membership-card motif */
+.menu-card::before,
+.menu-card::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.menu-card::before {
+  top: 8px; left: 8px;
+  border-top: 1.5px solid; border-left: 1.5px solid;
+}
+.menu-card::after {
+  bottom: 8px; right: 8px;
+  border-bottom: 1.5px solid; border-right: 1.5px solid;
 }
 
 .menu-card:hover {
   border-color: var(--accent);
   background: var(--accent-dim);
   transform: translateY(-3px);
-  box-shadow: 0 0 24px rgba(0, 255, 156, 0.2);
+}
+.menu-card:hover::before,
+.menu-card:hover::after {
+  opacity: 1;
 }
 
 .ai-card {
@@ -134,43 +172,43 @@
 }
 
 .menu-card-piece {
-  font-size: 42px;
+  font-size: 40px;
   line-height: 1;
 }
 .menu-card-piece.white {
-  color: var(--white-piece);
-  text-shadow: none;
-  filter: drop-shadow(0 0 8px rgba(0, 255, 156, 0.6));
+  color: var(--light-sq);
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.4));
 }
 .menu-card-piece.black {
-  color: var(--black-piece);
-  text-shadow: none;
-  filter: drop-shadow(0 0 8px rgba(255, 45, 117, 0.6));
+  color: var(--dark-sq);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.3));
+  -webkit-text-stroke: 0.5px var(--text-muted);
 }
 .menu-card-piece.ai-glow {
-  color: var(--black-piece);
-  filter: drop-shadow(0 0 12px rgba(255, 45, 117, 0.9)) drop-shadow(0 0 2px rgba(255, 45, 117, 0.5));
+  color: var(--accent2);
+  filter: drop-shadow(0 0 6px rgba(162, 64, 47, 0.5));
 }
 
 .menu-card-vs {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 12px;
-  color: var(--accent2);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--accent);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .menu-card-label {
-  font-size: 17px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  font-style: italic;
   color: var(--text);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .menu-card-desc {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-muted);
   line-height: 1.45;
 }
@@ -189,65 +227,30 @@
   justify-content: center;
   gap: 6px;
   padding: 10px 8px;
-  border-radius: var(--radius-sm, 4px);
-  border: 1px solid var(--border);
-  font-family: inherit;
-  font-size: 13px;
+  border-radius: var(--radius-sm, 3px);
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.15s;
+  background: var(--surface2);
+  color: var(--text);
 }
 
 .color-btn span {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
 }
 
-.white-btn {
-  background: rgba(0, 255, 156, 0.06);
-  color: var(--text);
-}
 .white-btn:hover {
-  background: rgba(0, 255, 156, 0.14);
   border-color: var(--accent);
-  box-shadow: 0 0 14px rgba(0, 255, 156, 0.3);
+  background: var(--accent-dim);
 }
 
-.black-btn {
-  background: rgba(255, 45, 117, 0.06);
-  color: var(--text);
-}
 .black-btn:hover {
-  background: rgba(255, 45, 117, 0.14);
   border-color: var(--accent2);
-  box-shadow: 0 0 14px rgba(255, 45, 117, 0.3);
-}
-
-.landing-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  width: 100%;
-  max-width: 320px;
-}
-
-.landing-card {
-  width: 100%;
-  padding: var(--space-5);
-}
-
-.about-text {
-  max-width: 480px;
-  text-transform: none;
-  letter-spacing: normal;
-  font-weight: 400;
-  color: var(--text-muted);
-  text-shadow: none;
-}
-
-.settings-screen-content {
-  max-width: 720px;
-  width: 100%;
+  background: var(--accent2-dim);
 }
