@@ -4,7 +4,8 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    // Removed explicit vite/client type to avoid "Cannot find type definition file for 'vite/client'".
+    // If you have vite types installed, you can re-enable this entry or install the appropriate package.
     "skipLibCheck": true,
 
     /* Bundler mode */
