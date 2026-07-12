@@ -43,8 +43,7 @@ export default function App() {
 
   const {
     vsAI, playerColor, state, flipped,
-    showHints, showCoords, showSettings, boardTheme, aiThinking,
-    timeControl, clock,
+    showHints, showCoords, showSettings, boardTheme, aiThinking, clock,
     setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
     handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
