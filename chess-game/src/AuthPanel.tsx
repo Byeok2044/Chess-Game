@@ -8,17 +8,46 @@ export default function AuthPanel() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setBusy(true);
-    const err = mode === 'signin'
-      ? await signIn(email, password)
-      : await signUp(email, password, username);
+
+    if (mode === 'signin') {
+      const err = await signIn(email, password);
+      setBusy(false);
+      if (err) {
+        setError(err);
+      } else {
+        setSuccess('Signed in successfully!');
+      }
+      return;
+    }
+
+    const result = await signUp(email, password, username);
     setBusy(false);
-    if (err) setError(err);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setSuccess(
+      result.needsEmailConfirmation
+        ? 'Account created! Check your email to confirm before signing in.'
+        : 'Account created successfully! You\'re signed in.'
+    );
+    setEmail('');
+    setPassword('');
+    setUsername('');
+  }
+
+  function switchMode() {
+    setMode((m) => (m === 'signin' ? 'signup' : 'signin'));
+    setError(null);
+    setSuccess(null);
   }
 
   return (
@@ -55,11 +84,12 @@ export default function AuthPanel() {
           {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
         </button>
       </form>
-      {error && <p style={{ color: '#e85050', fontSize: 13, marginTop: 8 }}>{error}</p>}
+      {error && <p className="auth-message auth-error">{error}</p>}
+      {success && <p className="auth-message auth-success">✓ {success}</p>}
       <button
         className="btn-ghost"
         style={{ marginTop: 10 }}
-        onClick={() => { setMode((m) => (m === 'signin' ? 'signup' : 'signin')); setError(null); }}
+        onClick={switchMode}
       >
         {mode === 'signin' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
       </button>

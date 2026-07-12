@@ -2,11 +2,16 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Session } from '@supabase/supabase-js';
 import { supabase, type Profile } from './supabase.ts';
 
+export interface SignUpResult {
+  error: string | null;
+  needsEmailConfirmation: boolean;
+}
+
 interface AuthContextValue {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<string | null>;
+  signUp: (email: string, password: string, username: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
@@ -60,9 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, [session?.user?.id]);
 
-  async function signUp(email: string, password: string, username: string) {
+  async function signUp(email: string, password: string, username: string): Promise<SignUpResult> {
     const trimmedUsername = username.trim();
-    if (!trimmedUsername) return 'Please choose a username.';
+    if (!trimmedUsername) return { error: 'Please choose a username.', needsEmailConfirmation: false };
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -74,16 +79,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Sign up error:', error);
       const message = extractErrorMessage(error);
       if (/duplicate key|already exists|unique/i.test(message)) {
-        return 'That username or email is already taken.';
+        return { error: 'That email is already registered.', needsEmailConfirmation: false };
       }
-      return message;
+      return { error: message, needsEmailConfirmation: false };
     }
 
-    if (data.user && !data.session) {
-      return null;
-    }
-
-    return null;
+    // If a session came back immediately, the user is already logged in.
+    // If not (data.user exists but data.session is null), Supabase is
+    // waiting on email confirmation before issuing a session.
+    const needsEmailConfirmation = !!data.user && !data.session;
+    return { error: null, needsEmailConfirmation };
   }
 
   async function signIn(email: string, password: string) {
