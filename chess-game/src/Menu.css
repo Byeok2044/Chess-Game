@@ -261,3 +261,17 @@
   border-color: var(--accent2);
   background: var(--accent2-dim);
 }
+
+.landing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 280px;
+}
+
+.landing-card {
+  width: 100%;
+  height: auto;
+  padding: var(--space-4) var(--space-5);
+}
