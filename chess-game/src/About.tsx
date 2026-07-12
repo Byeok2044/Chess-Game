@@ -3,6 +3,14 @@ import './Menu.css';
 export default function About({ onBack }: { onBack: () => void }) {
   return (
     <div className="menu-root">
+      <div className="menu-bg">
+        <div className="menu-board-preview">
+          {Array.from({ length: 64 }, (_, i) => (
+            <div key={i} className={`menu-sq ${(Math.floor(i / 8) + i) % 2 === 0 ? 'light' : 'dark'}`} />
+          ))}
+        </div>
+      </div>
+
       <div className="menu-content">
         <div className="menu-logo">
           <span className="menu-logo-piece">♟</span>
