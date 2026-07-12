@@ -24,15 +24,15 @@ export default function Landing({ onPlay, onSettings, onAbout }: Props) {
         </div>
         <p className="menu-subtitle">A classic game, reimagined</p>
 
-        <div className="menu-cards landing-cards">
+        <div className="landing-cards">
           <button className="menu-card landing-card" onClick={onPlay}>
-            <div className="menu-card-label">▶ Play</div>
+            <div className="menu-card-label">Play</div>
           </button>
           <button className="menu-card landing-card" onClick={onSettings}>
-            <div className="menu-card-label">⚙ Settings</div>
+            <div className="menu-card-label">Settings</div>
           </button>
           <button className="menu-card landing-card" onClick={onAbout}>
-            <div className="menu-card-label">ℹ About</div>
+            <div className="menu-card-label">About</div>
           </button>
         </div>
       </div>
