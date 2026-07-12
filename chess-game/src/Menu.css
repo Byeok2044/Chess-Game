@@ -224,3 +224,30 @@
   border-color: var(--accent2);
   box-shadow: 0 0 14px rgba(255, 45, 117, 0.3);
 }
+
+.landing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 320px;
+}
+
+.landing-card {
+  width: 100%;
+  padding: var(--space-5);
+}
+
+.about-text {
+  max-width: 480px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-shadow: none;
+}
+
+.settings-screen-content {
+  max-width: 720px;
+  width: 100%;
+}
