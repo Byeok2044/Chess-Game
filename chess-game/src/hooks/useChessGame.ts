@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS } from '../GameSettings.ts';
 import type { BoardTheme, TimeControl } from '../GameSettings.ts';
 import { useAiOpponent } from './useAiOpponent.ts';
 import { useChessClock } from './useChessClock.ts';
+import { clearAiCache } from '../AI.ts';
 
 export type GameMode = 'menu' | 'playing';
 
@@ -103,6 +104,7 @@ export function useChessGame() {
     setState(initGame());
     setPendingFrom(null);
     clock.reset();
+    clearAiCache();
   }
 
   function goToMenu() {

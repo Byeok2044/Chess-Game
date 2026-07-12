@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase.ts';
+import { getOrFetch, appCache } from './lib/cache.ts';
 
 interface Row {
   id: string;
@@ -11,25 +12,49 @@ interface Row {
   games_played: number;
 }
 
+const LEADERBOARD_KEY = 'leaderboard';
+const LEADERBOARD_TTL_MS = 30000;
+
+async function fetchLeaderboard(): Promise<Row[]> {
+  const { data, error } = await supabase.from('leaderboard').select('*').limit(50);
+  if (error) throw error;
+  return (data as Row[]) ?? [];
+}
+
 export default function Leaderboard({ onClose }: { onClose: () => void }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  function load() {
+    setLoading(true);
+    getOrFetch(LEADERBOARD_KEY, LEADERBOARD_TTL_MS, fetchLeaderboard)
+      .then(setRows)
+      .finally(() => {
+        setLoading(false);
+        setRefreshing(false);
+      });
+  }
 
   useEffect(() => {
-    supabase
-      .from('leaderboard')
-      .select('*')
-      .limit(50)
-      .then(({ data }) => {
-        setRows((data as Row[]) ?? []);
-        setLoading(false);
-      });
+    load();
   }, []);
+
+  function handleRefresh() {
+    setRefreshing(true);
+    appCache.invalidate(LEADERBOARD_KEY);
+    load();
+  }
 
   return (
     <div className="promotion-overlay" style={{ position: 'fixed' }}>
       <div className="promotion-modal" style={{ minWidth: 340, maxWidth: 480 }}>
-        <p>Leaderboard</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p>Leaderboard</p>
+          <button className="btn-ghost" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? '…' : '↻'}
+          </button>
+        </div>
         {loading && <span className="no-moves">Loading…</span>}
         {!loading && rows.length === 0 && <span className="no-moves">No ranked games yet</span>}
         {!loading && rows.length > 0 && (

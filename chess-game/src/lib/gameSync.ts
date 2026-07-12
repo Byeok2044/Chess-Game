@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase, type GameRow, type SavedGameRow } from './supabase.ts';
+import { getOrFetch, appCache } from './cache.ts';
 import type { GameState, Color } from '../Chess.ts';
 
-const ABANDON_GRACE_MS = 20000; // time to allow a dropped player to reconnect
+const ABANDON_GRACE_MS = 20000;
+const SAVED_GAMES_TTL_MS = 15000;
+
+function savedGamesKey(userId: string) {
+  return `saved-games:${userId}`;
+}
 
 // ─────────────────────────────────────────────
 // Save & resume (local / vs-AI games)
@@ -26,20 +32,34 @@ export async function saveGame(
     ? supabase.from('saved_games').update(payload).eq('id', existingId)
     : supabase.from('saved_games').insert(payload);
   const { data, error } = await query.select().single();
+
+  if (!error) appCache.invalidate(savedGamesKey(userId));
+
   return { data: data as SavedGameRow | null, error };
 }
 
-export async function listSavedGames(userId: string) {
-  const { data, error } = await supabase
-    .from('saved_games')
-    .select('*')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false });
-  return { data: (data ?? []) as SavedGameRow[], error };
+export async function listSavedGames(userId: string, forceRefresh = false) {
+  const key = savedGamesKey(userId);
+  if (forceRefresh) appCache.invalidate(key);
+
+  const data = await getOrFetch(key, SAVED_GAMES_TTL_MS, async () => {
+    const { data, error } = await supabase
+      .from('saved_games')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as SavedGameRow[];
+  }).catch((error) => ({ error } as { error: unknown }));
+
+  if ('error' in data) return { data: [] as SavedGameRow[], error: data.error };
+  return { data, error: null };
 }
 
-export async function deleteSavedGame(id: string) {
-  return supabase.from('saved_games').delete().eq('id', id);
+export async function deleteSavedGame(id: string, userId: string) {
+  const result = await supabase.from('saved_games').delete().eq('id', id);
+  appCache.invalidate(savedGamesKey(userId));
+  return result;
 }
 
 // ─────────────────────────────────────────────
@@ -79,7 +99,7 @@ export async function joinGameByCode(inviteCode: string, userId: string) {
 // ─────────────────────────────────────────────
 export async function pushMove(gameId: string, state: GameState, turn: 'white' | 'black') {
   const winner =
-    state.status === 'checkmate' ? (turn === 'white' ? 'black' : 'white') // turn already flipped to loser
+    state.status === 'checkmate' ? (turn === 'white' ? 'black' : 'white')
     : state.status === 'stalemate' ? 'draw'
     : null;
 
@@ -97,19 +117,15 @@ export async function pushMove(gameId: string, state: GameState, turn: 'white' |
 // ─────────────────────────────────────────────
 // Ending a game early: resignation & abandonment
 // ─────────────────────────────────────────────
-
-// Called when a player deliberately leaves — instant forfeit.
 export async function resignGame(gameId: string, resigningColor: Color) {
   const winner = resigningColor === 'white' ? 'black' : 'white';
   return supabase
     .from('games')
     .update({ status: 'finished', winner })
     .eq('id', gameId)
-    .eq('status', 'active'); // no-op if the game already ended
+    .eq('status', 'active');
 }
 
-// Called automatically once a player's connection has been gone
-// for longer than the grace period.
 export async function claimAbandonment(gameId: string, remainingColor: Color) {
   return supabase
     .from('games')
@@ -120,7 +136,8 @@ export async function claimAbandonment(gameId: string, remainingColor: Color) {
 
 // ─────────────────────────────────────────────
 // Call once a game finishes to update both players' win/loss/draw counts.
-// Counts 'abandoned' games too, so forfeits affect ratings/records.
+// Also invalidates each player's cached profile and the leaderboard,
+// since ratings/records just changed.
 // ─────────────────────────────────────────────
 export async function recordResult(game: GameRow) {
   if (!game.winner || !game.white_id || !game.black_id) return;
@@ -129,6 +146,7 @@ export async function recordResult(game: GameRow) {
     const { data } = await supabase.from('profiles').select(field).eq('id', userId).single();
     const current = (data as Record<string, number> | null)?.[field] ?? 0;
     await supabase.from('profiles').update({ [field]: current + 1 }).eq('id', userId);
+    appCache.invalidate(`profile:${userId}`);
   };
 
   if (game.winner === 'draw') {
@@ -141,10 +159,13 @@ export async function recordResult(game: GameRow) {
     await bump(game.black_id, 'wins');
     await bump(game.white_id, 'losses');
   }
+
+  appCache.invalidate('leaderboard');
 }
 
 // ─────────────────────────────────────────────
 // React hook: subscribe to a live multiplayer game
+// (Not cached — real-time data via postgres_changes should never be stale.)
 // ─────────────────────────────────────────────
 export function useMultiplayerGame(gameId: string | null) {
   const [game, setGame] = useState<GameRow | null>(null);

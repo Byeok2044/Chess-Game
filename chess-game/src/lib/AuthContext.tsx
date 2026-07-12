@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, type Profile } from './supabase.ts';
+import { getOrFetch, appCache } from './cache.ts';
 
 export interface SignUpResult {
   error: string | null;
@@ -17,6 +18,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const PROFILE_TTL_MS = 60000;
 
 function extractErrorMessage(error: unknown): string {
   if (!error) return 'Something went wrong. Please try again.';
@@ -54,14 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       return;
     }
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (error) console.error('Failed to load profile:', error);
-        setProfile(data);
+    const userId = session.user.id;
+    getOrFetch(`profile:${userId}`, PROFILE_TTL_MS, async () => {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      if (error) throw error;
+      return data as Profile;
+    })
+      .then(setProfile)
+      .catch((error) => {
+        console.error('Failed to load profile:', error);
+        setProfile(null);
       });
   }, [session?.user?.id]);
 
@@ -84,9 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: message, needsEmailConfirmation: false };
     }
 
-    // If a session came back immediately, the user is already logged in.
-    // If not (data.user exists but data.session is null), Supabase is
-    // waiting on email confirmation before issuing a session.
     const needsEmailConfirmation = !!data.user && !data.session;
     return { error: null, needsEmailConfirmation };
   }
@@ -101,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    if (session?.user) appCache.invalidate(`profile:${session.user.id}`);
     await supabase.auth.signOut();
   }
 

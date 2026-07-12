@@ -73,12 +73,12 @@ export default function App() {
   }, [view, session?.user?.id]);
 
   function discardActiveSave() {
-    if (savedGameIdRef.current) {
-      deleteSavedGame(savedGameIdRef.current);
-      savedGameIdRef.current = undefined;
-    }
-    clearGuestGame();
+  if (savedGameIdRef.current && session?.user) {
+    deleteSavedGame(savedGameIdRef.current, session.user.id);
+    savedGameIdRef.current = undefined;
   }
+  clearGuestGame();
+}
 
   function startLocal(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none') {
     discardActiveSave();
@@ -132,13 +132,13 @@ export default function App() {
       return () => clearTimeout(timeout);
     }
 
-    if (finished) {
-      if (savedGameIdRef.current) {
-        deleteSavedGame(savedGameIdRef.current);
-        savedGameIdRef.current = undefined;
-      }
-      return;
-    }
+  if (finished) {
+      if (savedGameIdRef.current && session?.user) {
+      deleteSavedGame(savedGameIdRef.current, session.user.id);
+      savedGameIdRef.current = undefined;
+  }
+  return;
+}
 
     const timeout = setTimeout(() => {
       saveGame(session.user!.id, state, mode, aiColorForSave, 'Untitled game', savedGameIdRef.current).then(
