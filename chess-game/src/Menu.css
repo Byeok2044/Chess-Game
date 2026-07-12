@@ -99,6 +99,7 @@
 .menu-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
   width: 100%;
   align-items: stretch;
@@ -119,11 +120,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-2);
   color: var(--text);
   font-family: inherit;
   text-align: center;
+  text-decoration: none;
   position: relative;
+  min-height: 268px;
+  height: 100%;
+  box-sizing: border-box;
   transition: border-color 0.18s, background 0.18s, transform 0.15s;
 }
 
@@ -211,6 +217,8 @@
   font-size: 12.5px;
   color: var(--text-muted);
   line-height: 1.45;
+  margin-bottom: auto;
+  padding-bottom: var(--space-2);
 }
 
 .color-choice {
