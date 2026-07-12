@@ -73,8 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error('Sign up error:', error);
       const message = extractErrorMessage(error);
-      // Postgres unique-violation from the profiles trigger often surfaces
-      // with this substring — give a friendlier message for it.
       if (/duplicate key|already exists|unique/i.test(message)) {
         return 'That username or email is already taken.';
       }
@@ -82,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.user && !data.session) {
-      // Email confirmation is likely required — not an error, just info.
       return null;
     }
 
