@@ -277,3 +277,30 @@
   height: auto;
   padding: var(--space-4) var(--space-5);
 }
+
+.time-choice {
+  display: flex;
+  gap: 6px;
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.time-btn {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 3px);
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface2);
+  color: var(--text);
+  transition: all 0.15s;
+}
+.time-btn:hover { border-color: var(--accent); }
+.time-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}

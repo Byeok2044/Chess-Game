@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { initGame, legalMoves, makeMove } from '../Chess.ts';
 import type { Color, GameState, PieceType } from '../Chess.ts';
 import { DEFAULT_SETTINGS } from '../GameSettings.ts';
-import type { BoardTheme } from '../GameSettings.ts';
+import type { BoardTheme, TimeControl } from '../GameSettings.ts';
 import { useAiOpponent } from './useAiOpponent.ts';
+import { useChessClock } from './useChessClock.ts';
 
 export type GameMode = 'menu' | 'playing';
 
@@ -18,15 +19,25 @@ export function useChessGame() {
   const [showCoords, setShowCoords] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [boardTheme, setBoardTheme] = useState<BoardTheme>(DEFAULT_SETTINGS.boardTheme);
+  const [timeControl, setTimeControl] = useState<TimeControl>('none');
 
-  const { aiThinking, cancelAiTurn } = useAiOpponent(state, setState, vsAI, playerColor, screen);
+  const clock = useChessClock(
+    timeControl,
+    state.turn,
+    screen === 'playing' && (state.status === 'playing' || state.status === 'check'),
+    state.moveHistory.length
+  );
 
-  function handleStart(mode: 'two-player' | 'vs-ai', color: Color) {
+  const { aiThinking, cancelAiTurn } = useAiOpponent(state, setState, vsAI, playerColor, screen, !!clock.timedOut);
+
+  function handleStart(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none') {
     setVsAI(mode === 'vs-ai');
     setPlayerColor(color);
     setFlipped(mode === 'vs-ai' && color === 'black');
     setState(initGame());
     setPendingFrom(null);
+    setTimeControl(tc);
+    clock.reset();
     setScreen('playing');
   }
 
@@ -36,10 +47,13 @@ export function useChessGame() {
     setFlipped(mode === 'vs-ai' && color === 'black');
     setState(savedState);
     setPendingFrom(null);
+    setTimeControl('none'); // saved games don't currently persist a clock
+    clock.reset();
     setScreen('playing');
   }
 
   function handleSquareClick(r: number, c: number) {
+    if (clock.timedOut) return;
     if (state.status === 'checkmate' || state.status === 'stalemate') return;
     if (state.promotionPending) return;
     if (vsAI) {
@@ -88,6 +102,7 @@ export function useChessGame() {
     cancelAiTurn();
     setState(initGame());
     setPendingFrom(null);
+    clock.reset();
   }
 
   function goToMenu() {
@@ -106,6 +121,8 @@ export function useChessGame() {
     showSettings,
     boardTheme,
     aiThinking,
+    timeControl,
+    clock,
     setFlipped,
     setShowHints,
     setShowCoords,

@@ -5,6 +5,7 @@ import Menu from './Menu.tsx';
 import About from './About.tsx';
 import SettingsScreen from './SettingsScreen.tsx';
 import Settings from './Settings.tsx';
+import Puzzles from './Puzzles.tsx';
 import GameHeader from './components/GameHeader.tsx';
 import PlayerBar from './components/PlayerBar.tsx';
 import MoveHistory from './components/MoveHistory.tsx';
@@ -19,9 +20,10 @@ import { saveGame, listSavedGames, deleteSavedGame } from './lib/gameSync.ts';
 import { saveGuestGame, loadGuestGame, clearGuestGame } from './lib/localSave.ts';
 import { BOARD_THEMES } from './GameSettings.ts';
 import type { Color, GameState } from './Chess.ts';
+import type { TimeControl } from './GameSettings.ts';
 import './App.css';
 
-type View = 'landing' | 'menu' | 'settings' | 'about' | 'local' | 'online-lobby' | 'multiplayer';
+type View = 'landing' | 'menu' | 'settings' | 'about' | 'local' | 'online-lobby' | 'multiplayer' | 'puzzles';
 
 interface ResumableGame {
   source: 'guest' | 'cloud';
@@ -42,6 +44,7 @@ export default function App() {
   const {
     vsAI, playerColor, state, flipped,
     showHints, showCoords, showSettings, boardTheme, aiThinking,
+    timeControl, clock,
     setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
     handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
@@ -78,9 +81,9 @@ export default function App() {
     clearGuestGame();
   }
 
-  function startLocal(mode: 'two-player' | 'vs-ai', color: Color) {
+  function startLocal(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none') {
     discardActiveSave();
-    handleStart(mode, color);
+    handleStart(mode, color, tc);
     setView('local');
   }
 
@@ -117,7 +120,7 @@ export default function App() {
 
     const mode: 'two-player' | 'vs-ai' = vsAI ? 'vs-ai' : 'two-player';
     const aiColorForSave: Color | null = vsAI ? (playerColor === 'white' ? 'black' : 'white') : null;
-    const finished = state.status === 'checkmate' || state.status === 'stalemate';
+    const finished = state.status === 'checkmate' || state.status === 'stalemate' || !!clock.timedOut;
 
     if (!session?.user) {
       if (finished) {
@@ -147,7 +150,7 @@ export default function App() {
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [state, view, vsAI, playerColor, session?.user?.id]);
+  }, [state, view, vsAI, playerColor, session?.user?.id, clock.timedOut]);
 
   const resumeLabel = resumable
     ? resumable.mode === 'vs-ai'
@@ -161,12 +164,17 @@ export default function App() {
         onPlay={() => setView('menu')}
         onSettings={() => setView('settings')}
         onAbout={() => setView('about')}
+        onPuzzles={() => setView('puzzles')}
       />
     );
   }
 
   if (view === 'about') {
     return <About onBack={() => setView('landing')} />;
+  }
+
+  if (view === 'puzzles') {
+    return <Puzzles onBack={() => setView('landing')} />;
   }
 
   if (view === 'settings') {
@@ -218,6 +226,7 @@ export default function App() {
   const blackLabel = vsAI ? (aiColor === 'black' ? 'Computer' : 'You') : 'Black';
   const whiteLabel = vsAI ? (playerColor === 'white' ? 'You' : 'Computer') : 'White';
   const displayState = showHints ? state : { ...state, validMoves: [] };
+  const gameOver = state.status === 'checkmate' || state.status === 'stalemate' || !!clock.timedOut;
 
   return (
     <div className="app">
@@ -250,6 +259,8 @@ export default function App() {
             capturedIcons={capturedIconsFor(state.capturedByBlack, 'white')}
             lead={blackLead}
             thinking={vsAI && aiThinking && aiColor === 'black'}
+            timeMs={clock.hasClock ? clock.blackMs : undefined}
+            clockActive={clock.hasClock && state.turn === 'black' && !gameOver}
           />
 
           <Board
@@ -269,11 +280,13 @@ export default function App() {
             capturedIcons={capturedIconsFor(state.capturedByWhite, 'black')}
             lead={whiteLead}
             thinking={vsAI && aiThinking && aiColor === 'white'}
+            timeMs={clock.hasClock ? clock.whiteMs : undefined}
+            clockActive={clock.hasClock && state.turn === 'white' && !gameOver}
           />
         </div>
 
         <aside className="side-panel">
-          <StatusCard state={state} aiThinking={aiThinking} onPlayAgain={handleNewGame} />
+          <StatusCard state={state} aiThinking={aiThinking} onPlayAgain={handleNewGame} timedOut={clock.timedOut} />
           <MoveHistory moveHistory={state.moveHistory} />
         </aside>
       </main>

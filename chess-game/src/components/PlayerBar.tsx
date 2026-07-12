@@ -1,3 +1,5 @@
+import { formatClock } from '../utils/formatTime.ts';
+
 interface Props {
   label: string;
   avatarIcon: string;
@@ -5,9 +7,13 @@ interface Props {
   capturedIcons: string[];
   lead: number;
   thinking: boolean;
+  timeMs?: number;
+  clockActive?: boolean;
 }
 
-export default function PlayerBar({ label, avatarIcon, avatarClass, capturedIcons, lead, thinking }: Props) {
+export default function PlayerBar({ label, avatarIcon, avatarClass, capturedIcons, lead, thinking, timeMs, clockActive }: Props) {
+  const lowTime = timeMs !== undefined && timeMs <= 30000;
+
   return (
     <div className="player-bar">
       <div className="player-info">
@@ -22,6 +28,11 @@ export default function PlayerBar({ label, avatarIcon, avatarClass, capturedIcon
           <span key={i} className="captured">{icon}</span>
         ))}
       </div>
+      {timeMs !== undefined && (
+        <div className={`player-clock ${clockActive ? 'active-clock' : ''} ${lowTime ? 'low-time' : ''}`}>
+          {formatClock(timeMs)}
+        </div>
+      )}
       {thinking && (
         <div className="thinking-dots"><span /><span /><span /></div>
       )}

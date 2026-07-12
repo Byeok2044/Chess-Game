@@ -676,3 +676,24 @@ button, input { font-family: inherit; }
   font-family: var(--font-sans);
   font-size: 14px;
 }
+
+.player-clock {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  min-width: 54px;
+  text-align: center;
+}
+.player-clock.active-clock {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.player-clock.low-time {
+  border-color: var(--check);
+  color: var(--check);
+}

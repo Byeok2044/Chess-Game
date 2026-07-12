@@ -4,9 +4,10 @@ interface Props {
   onPlay: () => void;
   onSettings: () => void;
   onAbout: () => void;
+  onPuzzles: () => void;
 }
 
-export default function Landing({ onPlay, onSettings, onAbout }: Props) {
+export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Props) {
   return (
     <div className="menu-root">
       <div className="menu-bg">
@@ -27,6 +28,9 @@ export default function Landing({ onPlay, onSettings, onAbout }: Props) {
         <div className="landing-cards">
           <button className="menu-card landing-card" onClick={onPlay}>
             <div className="menu-card-label">Play</div>
+          </button>
+          <button className="menu-card landing-card" onClick={onPuzzles}>
+            <div className="menu-card-label">Puzzles</div>
           </button>
           <button className="menu-card landing-card" onClick={onSettings}>
             <div className="menu-card-label">Settings</div>

@@ -8,13 +8,14 @@ export function useAiOpponent(
   setState: (state: GameState) => void,
   vsAI: boolean,
   playerColor: Color,
-  screen: 'menu' | 'playing'
+  screen: 'menu' | 'playing',
+  locked = false
 ) {
   const [aiThinking, setAiThinking] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!vsAI || screen !== 'playing') return;
+    if (!vsAI || screen !== 'playing' || locked) return;
     const aiColor: Color = playerColor === 'white' ? 'black' : 'white';
     if (state.turn !== aiColor) return;
     if (state.status === 'checkmate' || state.status === 'stalemate') return;
@@ -30,7 +31,7 @@ export function useAiOpponent(
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [state, vsAI, playerColor, screen, setState]);
+  }, [state, vsAI, playerColor, screen, setState, locked]);
 
   function cancel() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

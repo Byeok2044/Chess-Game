@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import './Menu.css';
+import { TIME_CONTROLS } from './GameSettings.ts';
+import type { TimeControl } from './GameSettings.ts';
 
 interface Props {
-  onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black') => void;
+  onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black', timeControl?: TimeControl) => void;
   onPlayOnline: () => void;
   resumeLabel: string | null;
   onResume: () => void;
@@ -9,6 +12,8 @@ interface Props {
 }
 
 export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onBack }: Props) {
+  const [twoPlayerTimeControl, setTwoPlayerTimeControl] = useState<TimeControl>('none');
+
   return (
     <div className="menu-root">
       <div className="menu-bg">
@@ -34,7 +39,7 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
         )}
 
         <div className="menu-cards">
-          <button className="menu-card" onClick={() => onStart('two-player', 'white')}>
+          <div className="menu-card ai-card">
             <div className="menu-card-pieces">
               <span className="menu-card-piece white">♔</span>
               <span className="menu-card-vs">vs</span>
@@ -42,7 +47,29 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
             </div>
             <div className="menu-card-label">Two Players</div>
             <div className="menu-card-desc">Play with a friend on the same device</div>
-          </button>
+
+            <div className="time-choice">
+              {(Object.keys(TIME_CONTROLS) as TimeControl[]).map((tc) => (
+                <button
+                  key={tc}
+                  type="button"
+                  className={`time-btn ${twoPlayerTimeControl === tc ? 'active' : ''}`}
+                  onClick={() => setTwoPlayerTimeControl(tc)}
+                  title={TIME_CONTROLS[tc].desc}
+                >
+                  {tc === 'none' ? 'No timer' : TIME_CONTROLS[tc].label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="btn-primary"
+              style={{ marginTop: 10 }}
+              onClick={() => onStart('two-player', 'white', twoPlayerTimeControl)}
+            >
+              Start Game
+            </button>
+          </div>
 
           <div className="menu-card ai-card">
             <div className="menu-card-pieces">
