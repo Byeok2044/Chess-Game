@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Board from './Board.tsx';
+import Landing from './Landing.tsx';
 import Menu from './Menu.tsx';
+import About from './About.tsx';
+import SettingsScreen from './SettingsScreen.tsx';
 import Settings from './Settings.tsx';
 import GameHeader from './components/GameHeader.tsx';
 import PlayerBar from './components/PlayerBar.tsx';
@@ -18,7 +21,7 @@ import { BOARD_THEMES } from './GameSettings.ts';
 import type { Color, GameState } from './Chess.ts';
 import './App.css';
 
-type View = 'menu' | 'local' | 'online-lobby' | 'multiplayer';
+type View = 'landing' | 'menu' | 'settings' | 'about' | 'local' | 'online-lobby' | 'multiplayer';
 
 interface ResumableGame {
   source: 'guest' | 'cloud';
@@ -29,7 +32,7 @@ interface ResumableGame {
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('menu');
+  const [view, setView] = useState<View>('landing');
   const [multiplayerGameId, setMultiplayerGameId] = useState<string | null>(null);
   const [multiplayerColor, setMultiplayerColor] = useState<Color>('white');
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
@@ -99,7 +102,7 @@ export default function App() {
 
   function backToMenu() {
     goToMenu();
-    setView('menu');
+    setView('landing');
   }
 
   function enterMultiplayerGame(gameId: string, color: Color) {
@@ -152,6 +155,36 @@ export default function App() {
       : `Two Players · ${resumable.state.moveHistory.length} moves played`
     : null;
 
+  if (view === 'landing') {
+    return (
+      <Landing
+        onPlay={() => setView('menu')}
+        onSettings={() => setView('settings')}
+        onAbout={() => setView('about')}
+      />
+    );
+  }
+
+  if (view === 'about') {
+    return <About onBack={() => setView('landing')} />;
+  }
+
+  if (view === 'settings') {
+    return (
+      <SettingsScreen
+        showHints={showHints}
+        showCoords={showCoords}
+        flipped={flipped}
+        boardTheme={boardTheme}
+        onToggleHints={() => setShowHints((h) => !h)}
+        onToggleCoords={() => setShowCoords((c) => !c)}
+        onToggleFlipped={() => setFlipped((f) => !f)}
+        onChangeBoardTheme={setBoardTheme}
+        onBack={() => setView('landing')}
+      />
+    );
+  }
+
   if (view === 'menu') {
     return (
       <Menu
@@ -159,6 +192,7 @@ export default function App() {
         onPlayOnline={() => setView('online-lobby')}
         resumeLabel={resumeLabel}
         onResume={handleResume}
+        onBack={() => setView('landing')}
       />
     );
   }
@@ -172,7 +206,7 @@ export default function App() {
       <MultiplayerGame
         gameId={multiplayerGameId}
         playerColor={multiplayerColor}
-        onExit={() => { setMultiplayerGameId(null); setView('menu'); }}
+        onExit={() => { setMultiplayerGameId(null); setView('landing'); }}
       />
     );
   }

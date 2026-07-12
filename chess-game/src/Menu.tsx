@@ -5,9 +5,10 @@ interface Props {
   onPlayOnline: () => void;
   resumeLabel: string | null;
   onResume: () => void;
+  onBack: () => void;
 }
 
-export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume }: Props) {
+export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onBack }: Props) {
   return (
     <div className="menu-root">
       <div className="menu-bg">
@@ -77,6 +78,8 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume }: P
             <div className="menu-card-desc">Challenge a friend remotely with an invite code</div>
           </button>
         </div>
+
+        <button className="btn-ghost" onClick={onBack}>← Back</button>
       </div>
     </div>
   );
