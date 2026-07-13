@@ -25,7 +25,12 @@ interface Props {
 export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme }: Props) {
   const { board, selected, validMoves, promotionPending } = state;
 
-  const rows = flipped ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
+  // board[7] holds White's back rank and board[0] holds Black's back rank.
+  // Non-flipped (default) view should render White at the bottom, like a
+  // standard physical board — so row 0 (Black) is rendered first (top) and
+  // row 7 (White) is rendered last (bottom). Flipped swaps this so Black
+  // ends up at the bottom instead.
+  const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
   const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
 
   const isValidMove = (r: number, c: number) => showValidMoves && validMoves.some(([vr, vc]) => vr === r && vc === c);
