@@ -18,9 +18,9 @@ import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import { saveGame, listSavedGames, deleteSavedGame } from './lib/gameSync.ts';
 import { saveGuestGame, loadGuestGame, clearGuestGame } from './lib/localSave.ts';
-import { BOARD_THEMES } from './GameSettings.ts';
+import { BOARD_THEMES, DIFFICULTIES } from './GameSettings.ts';
 import type { Color, GameState } from './Chess.ts';
-import type { TimeControl } from './GameSettings.ts';
+import type { TimeControl, Difficulty } from './GameSettings.ts';
 import './App.css';
 
 type View = 'landing' | 'menu' | 'settings' | 'about' | 'local' | 'online-lobby' | 'multiplayer' | 'puzzles';
@@ -42,7 +42,7 @@ export default function App() {
   const savedGameIdRef = useRef<string | undefined>(undefined);
 
   const {
-    vsAI, playerColor, state, flipped,
+    vsAI, playerColor, state, flipped, difficulty,
     showHints, showCoords, showSettings, boardTheme, aiThinking, clock,
     setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
     handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
@@ -80,9 +80,9 @@ export default function App() {
   clearGuestGame();
 }
 
-  function startLocal(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none') {
+  function startLocal(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none', diff?: Difficulty) {
     discardActiveSave();
-    handleStart(mode, color, tc);
+    handleStart(mode, color, tc, diff);
     setView('local');
   }
 
@@ -222,8 +222,8 @@ export default function App() {
   const whiteLead = scores.white - scores.black;
   const blackLead = scores.black - scores.white;
   const aiColor = playerColor === 'white' ? 'black' : 'white';
-  const blackLabel = vsAI ? (aiColor === 'black' ? 'Computer' : 'You') : 'Black';
-  const whiteLabel = vsAI ? (playerColor === 'white' ? 'You' : 'Computer') : 'White';
+  const blackLabel = vsAI ? (aiColor === 'black' ? `Computer · ${DIFFICULTIES[difficulty].label}` : 'You') : 'Black';
+  const whiteLabel = vsAI ? (playerColor === 'white' ? 'You' : `Computer · ${DIFFICULTIES[difficulty].label}`) : 'White';
   const displayState = showHints ? state : { ...state, validMoves: [] };
   const gameOver = state.status === 'checkmate' || state.status === 'stalemate' || !!clock.timedOut;
 

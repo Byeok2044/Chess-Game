@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import './Menu.css';
-import { TIME_CONTROLS } from './GameSettings.ts';
-import type { TimeControl } from './GameSettings.ts';
+import { TIME_CONTROLS, DIFFICULTIES } from './GameSettings.ts';
+import type { TimeControl, Difficulty } from './GameSettings.ts';
 
 interface Props {
-  onStart: (mode: 'two-player' | 'vs-ai', playerColor: 'white' | 'black', timeControl?: TimeControl) => void;
+  onStart: (
+    mode: 'two-player' | 'vs-ai',
+    playerColor: 'white' | 'black',
+    timeControl?: TimeControl,
+    difficulty?: Difficulty
+  ) => void;
   onPlayOnline: () => void;
   resumeLabel: string | null;
   onResume: () => void;
@@ -13,6 +18,8 @@ interface Props {
 
 export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onBack }: Props) {
   const [twoPlayerTimeControl, setTwoPlayerTimeControl] = useState<TimeControl>('none');
+  const [aiTimeControl, setAiTimeControl] = useState<TimeControl>('none');
+  const [aiDifficulty, setAiDifficulty] = useState<Difficulty>('medium');
 
   return (
     <div className="menu-root">
@@ -78,17 +85,46 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
               <span className="menu-card-piece ai-glow">♚</span>
             </div>
             <div className="menu-card-label">vs Computer</div>
-            <div className="menu-card-desc">Choose your side</div>
+            <div className="menu-card-desc">Choose your side, difficulty, and clock</div>
+
+            <div className="time-choice">
+              {(Object.keys(DIFFICULTIES) as Difficulty[]).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`time-btn ${aiDifficulty === d ? 'active' : ''}`}
+                  onClick={() => setAiDifficulty(d)}
+                  title={DIFFICULTIES[d].desc}
+                >
+                  {DIFFICULTIES[d].label}
+                </button>
+              ))}
+            </div>
+
+            <div className="time-choice">
+              {(Object.keys(TIME_CONTROLS) as TimeControl[]).map((tc) => (
+                <button
+                  key={tc}
+                  type="button"
+                  className={`time-btn ${aiTimeControl === tc ? 'active' : ''}`}
+                  onClick={() => setAiTimeControl(tc)}
+                  title={TIME_CONTROLS[tc].desc}
+                >
+                  {tc === 'none' ? 'No timer' : TIME_CONTROLS[tc].label}
+                </button>
+              ))}
+            </div>
+
             <div className="color-choice">
               <button
                 className="color-btn white-btn"
-                onClick={() => onStart('vs-ai', 'white')}
+                onClick={() => onStart('vs-ai', 'white', aiTimeControl, aiDifficulty)}
               >
                 <span>♔</span> Play White
               </button>
               <button
                 className="color-btn black-btn"
-                onClick={() => onStart('vs-ai', 'black')}
+                onClick={() => onStart('vs-ai', 'black', aiTimeControl, aiDifficulty)}
               >
                 <span>♚</span> Play Black
               </button>

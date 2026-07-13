@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { initGame, legalMoves, makeMove } from '../Chess.ts';
 import type { Color, GameState, PieceType } from '../Chess.ts';
-import { DEFAULT_SETTINGS } from '../GameSettings.ts';
-import type { BoardTheme, TimeControl } from '../GameSettings.ts';
+import { DEFAULT_SETTINGS, DIFFICULTIES } from '../GameSettings.ts';
+import type { BoardTheme, TimeControl, Difficulty } from '../GameSettings.ts';
 import { useAiOpponent } from './useAiOpponent.ts';
 import { useChessClock } from './useChessClock.ts';
 import { clearAiCache } from '../AI.ts';
@@ -21,6 +21,7 @@ export function useChessGame() {
   const [showSettings, setShowSettings] = useState(false);
   const [boardTheme, setBoardTheme] = useState<BoardTheme>(DEFAULT_SETTINGS.boardTheme);
   const [timeControl, setTimeControl] = useState<TimeControl>('none');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
 
   const clock = useChessClock(
     timeControl,
@@ -29,15 +30,29 @@ export function useChessGame() {
     state.moveHistory.length
   );
 
-  const { aiThinking, cancelAiTurn } = useAiOpponent(state, setState, vsAI, playerColor, screen, !!clock.timedOut);
+  const { aiThinking, cancelAiTurn } = useAiOpponent(
+    state,
+    setState,
+    vsAI,
+    playerColor,
+    screen,
+    DIFFICULTIES[difficulty].depth,
+    !!clock.timedOut
+  );
 
-  function handleStart(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none') {
+  function handleStart(
+    mode: 'two-player' | 'vs-ai',
+    color: Color,
+    tc: TimeControl = 'none',
+    diff: Difficulty = 'medium'
+  ) {
     setVsAI(mode === 'vs-ai');
     setPlayerColor(color);
     setFlipped(mode === 'vs-ai' && color === 'black');
     setState(initGame());
     setPendingFrom(null);
     setTimeControl(tc);
+    setDifficulty(diff);
     clock.reset();
     setScreen('playing');
   }
@@ -49,6 +64,7 @@ export function useChessGame() {
     setState(savedState);
     setPendingFrom(null);
     setTimeControl('none'); // saved games don't currently persist a clock
+    setDifficulty('medium'); // saved games don't currently persist difficulty
     clock.reset();
     setScreen('playing');
   }
@@ -124,6 +140,7 @@ export function useChessGame() {
     boardTheme,
     aiThinking,
     timeControl,
+    difficulty,
     clock,
     setFlipped,
     setShowHints,

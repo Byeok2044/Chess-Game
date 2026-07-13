@@ -1,6 +1,7 @@
 export type BoardTheme = 'ledger' | 'classic' | 'slate' | 'forest' | 'rosewood';
 export type PieceStyle = 'unicode' | 'minimal';
 export type TimeControl = 'none' | '1+0' | '3+2' | '5+0' | '10+0';
+export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface GameSettings {
   boardTheme: BoardTheme;
@@ -38,4 +39,10 @@ export const TIME_CONTROLS: Record<TimeControl, { label: string; desc: string }>
   '3+2':  { label: '3+2', desc: 'Blitz' },
   '5+0':  { label: '5+0', desc: 'Blitz' },
   '10+0': { label: '10+0', desc: 'Rapid' },
+};
+
+export const DIFFICULTIES: Record<Difficulty, { label: string; desc: string; depth: number }> = {
+  easy:   { label: 'Easy',   desc: 'Blunders pieces, good for beginners', depth: 1 },
+  medium: { label: 'Medium', desc: 'Solid club-level play',               depth: 3 },
+  hard:   { label: 'Hard',   desc: 'Calculates several moves ahead',      depth: 4 },
 };

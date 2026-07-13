@@ -9,6 +9,7 @@ export function useAiOpponent(
   vsAI: boolean,
   playerColor: Color,
   screen: 'menu' | 'playing',
+  depth: number,
   locked = false
 ) {
   const [aiThinking, setAiThinking] = useState(false);
@@ -23,7 +24,7 @@ export function useAiOpponent(
 
     setAiThinking(true);
     timeoutRef.current = setTimeout(() => {
-      const move = getBestMove(state, 3);
+      const move = getBestMove(state, depth);
       if (move) setState(makeMove(state, move.from, move.to, move.promote));
       setAiThinking(false);
     }, 300);
@@ -31,7 +32,7 @@ export function useAiOpponent(
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [state, vsAI, playerColor, screen, setState, locked]);
+  }, [state, vsAI, playerColor, screen, setState, depth, locked]);
 
   function cancel() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
