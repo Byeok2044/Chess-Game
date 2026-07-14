@@ -20,21 +20,19 @@ interface Props {
   showCoordinates: boolean;
   showValidMoves: boolean;
   boardTheme?: { light: string; dark: string };
+  hintFrom?: [number, number] | null;
+  locked?: boolean;
 }
 
-export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme }: Props) {
+export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme, hintFrom, locked }: Props) {
   const { board, selected, validMoves, promotionPending } = state;
 
-  // board[7] holds White's back rank and board[0] holds Black's back rank.
-  // Non-flipped (default) view should render White at the bottom, like a
-  // standard physical board — so row 0 (Black) is rendered first (top) and
-  // row 7 (White) is rendered last (bottom). Flipped swaps this so Black
-  // ends up at the bottom instead.
-  const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  const rows = flipped ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
   const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
 
   const isValidMove = (r: number, c: number) => showValidMoves && validMoves.some(([vr, vc]) => vr === r && vc === c);
   const isSelected = (r: number, c: number) => selected?.[0] === r && selected?.[1] === c;
+  const isHint = (r: number, c: number) => hintFrom?.[0] === r && hintFrom?.[1] === c;
   const isInCheck = (r: number, c: number) => {
     const p = board[r][c];
     return p?.type === 'king' && p.color === state.turn && (state.status === 'check' || state.status === 'checkmate');
@@ -45,7 +43,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
     : undefined;
 
   return (
-    <div style={{ position: 'relative', ...themeStyle }}>
+    <div style={{ position: 'relative', ...themeStyle }} className={locked ? 'board-locked' : undefined}>
       <div className="board">
         {rows.map((r) => (
           <div key={r} className="board-row">
@@ -55,6 +53,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
               const valid = isValidMove(r, c);
               const sel = isSelected(r, c);
               const check = isInCheck(r, c);
+              const hint = isHint(r, c);
 
               return (
                 <div
@@ -64,6 +63,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
                     isLight ? 'light' : 'dark',
                     sel ? 'selected' : '',
                     check ? 'in-check' : '',
+                    hint ? 'hint-square' : '',
                   ].join(' ')}
                   onClick={() => onSquareClick(r, c)}
                 >
