@@ -30,6 +30,7 @@ interface ResumableGame {
   id?: string;
   mode: 'two-player' | 'vs-ai';
   aiColor: 'white' | 'black' | null;
+  difficulty: Difficulty;
   state: GameState;
 }
 
@@ -58,13 +59,30 @@ export default function App() {
         const latest = data[0];
         setResumable(
           latest
-            ? { source: 'cloud', id: latest.id, mode: latest.mode, aiColor: latest.ai_color, state: latest.board_state }
+            ? {
+                source: 'cloud',
+                id: latest.id,
+                mode: latest.mode,
+                aiColor: latest.ai_color,
+                difficulty: latest.difficulty,
+                state: latest.board_state,
+              }
             : null
         );
       });
     } else {
       const guest = loadGuestGame();
-      setResumable(guest ? { source: 'guest', mode: guest.mode, aiColor: guest.aiColor, state: guest.state } : null);
+      setResumable(
+        guest
+          ? {
+              source: 'guest',
+              mode: guest.mode,
+              aiColor: guest.aiColor,
+              difficulty: guest.difficulty,
+              state: guest.state,
+            }
+          : null
+      );
     }
 
     return () => {
@@ -73,12 +91,12 @@ export default function App() {
   }, [view, session?.user?.id]);
 
   function discardActiveSave() {
-  if (savedGameIdRef.current && session?.user) {
-    deleteSavedGame(savedGameIdRef.current, session.user.id);
-    savedGameIdRef.current = undefined;
+    if (savedGameIdRef.current && session?.user) {
+      deleteSavedGame(savedGameIdRef.current, session.user.id);
+      savedGameIdRef.current = undefined;
+    }
+    clearGuestGame();
   }
-  clearGuestGame();
-}
 
   function startLocal(mode: 'two-player' | 'vs-ai', color: Color, tc: TimeControl = 'none', diff?: Difficulty) {
     discardActiveSave();
@@ -98,7 +116,7 @@ export default function App() {
         ? resumable.aiColor === 'white' ? 'black' : 'white'
         : 'white';
     savedGameIdRef.current = resumable.source === 'cloud' ? resumable.id : undefined;
-    resumeGame(resumable.mode, color, resumable.state);
+    resumeGame(resumable.mode, color, resumable.state, resumable.difficulty);
     setView('local');
   }
 
@@ -127,21 +145,21 @@ export default function App() {
         return;
       }
       const timeout = setTimeout(() => {
-        saveGuestGame(mode, aiColorForSave, state);
+        saveGuestGame(mode, aiColorForSave, difficulty, state);
       }, 800);
       return () => clearTimeout(timeout);
     }
 
-  if (finished) {
+    if (finished) {
       if (savedGameIdRef.current && session?.user) {
-      deleteSavedGame(savedGameIdRef.current, session.user.id);
-      savedGameIdRef.current = undefined;
-  }
-  return;
-}
+        deleteSavedGame(savedGameIdRef.current, session.user.id);
+        savedGameIdRef.current = undefined;
+      }
+      return;
+    }
 
     const timeout = setTimeout(() => {
-      saveGame(session.user!.id, state, mode, aiColorForSave, 'Untitled game', savedGameIdRef.current).then(
+      saveGame(session.user!.id, state, mode, aiColorForSave, difficulty, 'Untitled game', savedGameIdRef.current).then(
         ({ data }) => {
           if (data) savedGameIdRef.current = data.id;
         }
@@ -149,7 +167,7 @@ export default function App() {
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [state, view, vsAI, playerColor, session?.user?.id, clock.timedOut]);
+  }, [state, view, vsAI, playerColor, difficulty, session?.user?.id, clock.timedOut]);
 
   const resumeLabel = resumable
     ? resumable.mode === 'vs-ai'

@@ -18,6 +18,7 @@ export async function saveGame(
   state: GameState,
   mode: 'two-player' | 'vs-ai',
   aiColor: 'white' | 'black' | null,
+  difficulty: 'easy' | 'medium' | 'hard',
   name = 'Untitled game',
   existingId?: string
 ) {
@@ -26,6 +27,7 @@ export async function saveGame(
     name,
     mode,
     ai_color: aiColor,
+    difficulty,
     board_state: state,
   };
   const query = existingId

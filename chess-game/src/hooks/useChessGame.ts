@@ -57,17 +57,17 @@ export function useChessGame() {
     setScreen('playing');
   }
 
-  function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: GameState) {
-    setVsAI(mode === 'vs-ai');
-    setPlayerColor(color);
-    setFlipped(mode === 'vs-ai' && color === 'black');
-    setState(savedState);
-    setPendingFrom(null);
-    setTimeControl('none'); // saved games don't currently persist a clock
-    setDifficulty('medium'); // saved games don't currently persist difficulty
-    clock.reset();
-    setScreen('playing');
-  }
+function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: GameState, diff: Difficulty = 'medium') {
+  setVsAI(mode === 'vs-ai');
+  setPlayerColor(color);
+  setFlipped(mode === 'vs-ai' && color === 'black');
+  setState(savedState);
+  setPendingFrom(null);
+  setTimeControl('none');
+  setDifficulty(diff); // was hardcoded to 'medium'
+  clock.reset();
+  setScreen('playing');
+}
 
   function handleSquareClick(r: number, c: number) {
     if (clock.timedOut) return;

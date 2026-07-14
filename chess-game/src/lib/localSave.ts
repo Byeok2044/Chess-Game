@@ -1,16 +1,18 @@
 import type { GameState } from '../Chess.ts';
+import type { Difficulty } from '../GameSettings.ts';
 
 const KEY = 'chess-guest-save';
 
 export interface GuestSave {
   mode: 'two-player' | 'vs-ai';
   aiColor: 'white' | 'black' | null;
+  difficulty: Difficulty;
   state: GameState;
   updatedAt: string;
 }
 
-export function saveGuestGame(mode: 'two-player' | 'vs-ai', aiColor: 'white' | 'black' | null, state: GameState) {
-  const payload: GuestSave = { mode, aiColor, state, updatedAt: new Date().toISOString() };
+export function saveGuestGame(mode: 'two-player' | 'vs-ai', aiColor: 'white' | 'black' | null, difficulty: Difficulty, state: GameState) {
+  const payload: GuestSave = { mode, aiColor, difficulty, state, updatedAt: new Date().toISOString() };
   try {
     localStorage.setItem(KEY, JSON.stringify(payload));
   } catch {
