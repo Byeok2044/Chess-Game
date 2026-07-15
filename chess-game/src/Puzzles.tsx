@@ -208,7 +208,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
 
             <div className="puzzle-actions">
               <button className="btn-ghost" onClick={handleHint} disabled={locked || feedback === 'complete'}>
-                💡 Hint
+                ◇ Hint
               </button>
               <button className="btn-ghost" onClick={() => loadPuzzle(index)} disabled={locked}>
                 ↺ Retry
@@ -224,13 +224,13 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
           <aside className="side-panel" style={{ width: 280, position: 'static' }}>
             <div className={`puzzle-feedback-card ${feedback}`}>
               {feedback === 'idle' && <span>Find {turnLabel}'s best move.</span>}
-              {feedback === 'correct' && <span>Correct! Keep going…</span>}
-              {feedback === 'incorrect' && <span>Not quite — try again.</span>}
+              {feedback === 'correct' && <span>Correct. Keep going.</span>}
+              {feedback === 'incorrect' && <span>Not quite, try again.</span>}
               {feedback === 'complete' && (
                 <span>
                   {revealed
-                    ? 'Solution shown — ready for the next one?'
-                    : `Solved${attempts === 0 ? ' in one try' : ` in ${attempts + 1} tries`}${hintUsed ? ' (with a hint)' : ''} 🎉`}
+                    ? 'Solution shown. Ready for the next one?'
+                    : `Solved${attempts === 0 ? ' in one try' : ` in ${attempts + 1} tries`}${hintUsed ? ' (with a hint)' : ''}.`}
                 </span>
               )}
             </div>
@@ -240,7 +240,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             )}
             {feedback === 'complete' && index + 1 >= PUZZLES.length && (
               <p className="puzzle-subline" style={{ textAlign: 'center' }}>
-                🏆 You've solved every puzzle available!
+                ✓ You've solved every puzzle available.
               </p>
             )}
 

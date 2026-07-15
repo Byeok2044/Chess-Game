@@ -124,8 +124,8 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
     ? game.winner === 'draw'
       ? 'Draw'
       : game.winner === playerColor
-        ? (game.status === 'abandoned' ? 'You win — your opponent disconnected' : 'You win — your opponent resigned')
-        : (game.status === 'abandoned' ? 'You lose — you disconnected' : 'You lose — you resigned')
+        ? (game.status === 'abandoned' ? 'You win · your opponent disconnected' : 'You win · your opponent resigned')
+        : (game.status === 'abandoned' ? 'You lose · you disconnected' : 'You lose · you resigned')
     : null;
 
   return (
@@ -145,7 +145,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
       {game?.status === 'active' && !opponentOnline && (
         <div className="status-card check" style={{ margin: '12px 24px 0', borderRadius: 10 }}>
           <div className="status-dot" />
-          <span>Your opponent seems to have disconnected — you'll win by forfeit if they don't return soon.</span>
+          <span>Your opponent seems to have disconnected. You'll win by forfeit if they don't return soon.</span>
         </div>
       )}
 

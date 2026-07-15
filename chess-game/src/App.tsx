@@ -271,7 +271,7 @@ export default function App() {
         <div className="game-layout">
           <PlayerBar
             label={blackLabel}
-            avatarIcon={vsAI && aiColor === 'black' ? '🤖' : '♚'}
+            avatarIcon="♚"
             avatarClass={vsAI && aiColor === 'black' ? 'ai-avatar' : 'black-avatar'}
             capturedIcons={capturedIconsFor(state.capturedByBlack, 'white')}
             lead={blackLead}
@@ -292,7 +292,7 @@ export default function App() {
 
           <PlayerBar
             label={whiteLabel}
-            avatarIcon={vsAI && aiColor === 'white' ? '🤖' : '♔'}
+            avatarIcon="♔"
             avatarClass={vsAI && aiColor === 'white' ? 'ai-avatar' : 'white-avatar'}
             capturedIcons={capturedIconsFor(state.capturedByWhite, 'black')}
             lead={whiteLead}

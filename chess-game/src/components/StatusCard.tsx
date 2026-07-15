@@ -11,8 +11,8 @@ export default function StatusCard({ state, aiThinking, onPlayAgain, timedOut }:
   const statusMsg = timedOut
     ? `${timedOut === 'white' ? 'Black' : 'White'} wins on time`
     : {
-        checkmate: `Checkmate — ${state.turn === 'white' ? 'Black' : 'White'} wins`,
-        stalemate: 'Stalemate — Draw',
+        checkmate: `Checkmate · ${state.turn === 'white' ? 'Black' : 'White'} wins`,
+        stalemate: 'Stalemate · Draw',
         check: `${state.turn === 'white' ? 'White' : 'Black'} is in check`,
         playing: aiThinking ? 'Computer is thinking…' : `${state.turn === 'white' ? 'White' : 'Black'} to move`,
       }[state.status];
