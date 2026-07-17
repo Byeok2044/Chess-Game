@@ -5,13 +5,8 @@ import type { GameState } from './Chess.ts';
 import { turnFromFEN } from './utils/fen.ts';
 import { PUZZLES } from './puzzles/puzzleData.ts';
 import {
-  toUCI,
-  fromUCI,
-  stateFromPuzzle,
-  computeGoal,
-  difficultyBadge,
-  loadSolvedPuzzles,
-  markPuzzleSolved,
+  toUCI, fromUCI, stateFromPuzzle, computeGoal, difficultyBadge,
+  loadSolvedPuzzles, markPuzzleSolved,
 } from './puzzles/puzzleUtils.ts';
 import './Menu.css';
 import './App.css';
@@ -33,13 +28,10 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [movesCompleted, setMovesCompleted] = useState(0);
   const [locked, setLocked] = useState(false);
   const [hintFrom, setHintFrom] = useState<[number, number] | null>(null);
-  const [hintUsed, setHintUsed] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [solved, setSolved] = useState<Set<string>>(() => loadSolvedPuzzles());
 
   const goal = useMemo(() => computeGoal(puzzle), [puzzle]);
-  const turnLabel = turnFromFEN(puzzle.fen) === 'white' ? 'White' : 'Black';
-  const solvedCount = solved.size;
 
   function loadPuzzle(i: number) {
     const p = PUZZLES[i];
@@ -51,7 +43,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     setMovesCompleted(0);
     setLocked(false);
     setHintFrom(null);
-    setHintUsed(false);
     setRevealed(false);
   }
 
@@ -94,11 +85,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
               const newStep = step + 2;
               setStep(newStep);
               setLocked(false);
-              if (newStep >= puzzle.solution.length) {
-                completePuzzle();
-              } else {
-                setFeedback('idle');
-              }
+              if (newStep >= puzzle.solution.length) completePuzzle();
+              else setFeedback('idle');
             }, REPLY_DELAY_MS);
           }
         } else {
@@ -119,7 +107,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         setHintFrom(null);
         return;
       }
-
       setState({ ...state, selected: null, validMoves: [] });
       return;
     }
@@ -132,9 +119,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
 
   function handleHint() {
     if (locked || feedback === 'complete') return;
-    const { from } = fromUCI(puzzle.solution[step]);
-    setHintFrom(from);
-    setHintUsed(true);
+    setHintFrom(fromUCI(puzzle.solution[step]).from);
   }
 
   function handleRevealSolution() {
@@ -164,13 +149,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   return (
     <div className="menu-root" style={{ alignItems: 'flex-start', paddingTop: 24 }}>
       <div className="menu-content" style={{ maxWidth: 960 }}>
-        <div className="menu-logo">
-          <span className="menu-logo-piece">♟</span>
-          <h1 className="menu-title">Puzzles</h1>
-        </div>
-        <p className="menu-subtitle" style={{ marginBottom: 0 }}>
-          {solvedCount} / {PUZZLES.length} solved
-        </p>
+        <button className="btn-ghost" onClick={onBack}>← Back</button>
 
         <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
           <div>
@@ -178,9 +157,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
               <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
               <h2 className="puzzle-goal-label">{goal.label}</h2>
             </div>
-            <p className="puzzle-subline">{turnLabel} to move · {puzzle.theme}</p>
 
-            <div className="puzzle-progress" aria-label={`${movesCompleted} of ${goal.playerMoveCount} moves found`}>
+            <div className="puzzle-progress">
               {Array.from({ length: goal.playerMoveCount }, (_, i) => (
                 <span
                   key={i}
@@ -207,52 +185,31 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             </div>
 
             <div className="puzzle-actions">
-              <button className="btn-ghost" onClick={handleHint} disabled={locked || feedback === 'complete'}>
-                ◇ Hint
-              </button>
-              <button className="btn-ghost" onClick={() => loadPuzzle(index)} disabled={locked}>
-                ↺ Retry
-              </button>
+              <button className="btn-ghost" onClick={handleHint} disabled={locked || feedback === 'complete'}>Hint</button>
+              <button className="btn-ghost" onClick={() => loadPuzzle(index)} disabled={locked}>Retry</button>
               {attempts >= REVEAL_AFTER_ATTEMPTS && feedback !== 'complete' && (
-                <button className="btn-ghost" onClick={handleRevealSolution} disabled={locked}>
-                  Show solution
-                </button>
+                <button className="btn-ghost" onClick={handleRevealSolution} disabled={locked}>Solution</button>
               )}
             </div>
           </div>
 
           <aside className="side-panel" style={{ width: 280, position: 'static' }}>
-            <div className={`puzzle-feedback-card ${feedback}`}>
-              {feedback === 'idle' && <span>Find {turnLabel}'s best move.</span>}
-              {feedback === 'correct' && <span>Correct. Keep going.</span>}
-              {feedback === 'incorrect' && <span>Not quite, try again.</span>}
-              {feedback === 'complete' && (
-                <span>
-                  {revealed
-                    ? 'Solution shown. Ready for the next one?'
-                    : `Solved${attempts === 0 ? ' in one try' : ` in ${attempts + 1} tries`}${hintUsed ? ' (with a hint)' : ''}.`}
-                </span>
-              )}
-            </div>
-
-            {feedback === 'complete' && index + 1 < PUZZLES.length && (
-              <button className="btn-primary" onClick={() => loadPuzzle(index + 1)}>Next puzzle</button>
-            )}
-            {feedback === 'complete' && index + 1 >= PUZZLES.length && (
-              <p className="puzzle-subline" style={{ textAlign: 'center' }}>
-                ✓ You've solved every puzzle available.
-              </p>
+            {feedback === 'correct' && <div className="puzzle-feedback-card correct" />}
+            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" />}
+            {feedback === 'complete' && (
+              <div className="puzzle-feedback-card complete">
+                {index + 1 < PUZZLES.length ? (
+                  <button className="btn-primary" onClick={() => loadPuzzle(index + 1)}>Next puzzle</button>
+                ) : (
+                  <span>All puzzles solved</span>
+                )}
+              </div>
             )}
 
             <div className="move-history">
-              <h3>All puzzles</h3>
               <div className="moves-grid">
                 {PUZZLES.map((p, i) => (
-                  <button
-                    key={p.id}
-                    className="btn-ghost puzzle-list-item"
-                    onClick={() => loadPuzzle(i)}
-                  >
+                  <button key={p.id} className="btn-ghost puzzle-list-item" onClick={() => loadPuzzle(i)}>
                     <span className="puzzle-list-title">
                       {solved.has(p.id) && <span className="puzzle-solved-check">✓</span>}
                       {p.title}
@@ -264,8 +221,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             </div>
           </aside>
         </div>
-
-        <button className="btn-ghost" onClick={onBack} style={{ marginTop: 16 }}>← Back</button>
       </div>
     </div>
   );
