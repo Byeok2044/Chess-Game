@@ -808,3 +808,23 @@ button, input { font-family: inherit; }
   60% { transform: translateX(-6px); }
   80% { transform: translateX(6px); }
 }
+
+.square.last-move::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(201, 162, 39, 0.22);
+  pointer-events: none;
+  z-index: 0;
+}
+.square.dark.last-move::before {
+  background: rgba(201, 162, 39, 0.3);
+}
+
+.piece {
+  cursor: grab;
+}
+.piece.dragging {
+  opacity: 0.35;
+  cursor: grabbing;
+}

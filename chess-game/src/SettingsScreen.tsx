@@ -8,9 +8,11 @@ interface Props {
   showCoords: boolean;
   flipped: boolean;
   boardTheme: BoardTheme;
+  soundEnabled: boolean;
   onToggleHints: () => void;
   onToggleCoords: () => void;
   onToggleFlipped: () => void;
+  onToggleSound: () => void;
   onChangeBoardTheme: (theme: BoardTheme) => void;
   onBack: () => void;
 }

@@ -10,18 +10,19 @@ export type Square = Piece | null;
 export type Board = Square[][];
 
 export interface GameState {
-  board: Board;
-  turn: Color;
-  selected: [number, number] | null;
-  validMoves: [number, number][];
-  status: 'playing' | 'check' | 'checkmate' | 'stalemate';
-  capturedByWhite: Piece[];
-  capturedByBlack: Piece[];
-  moveHistory: string[];
-  enPassantTarget: [number, number] | null;
-  castlingRights: { whiteKingside: boolean; whiteQueenside: boolean; blackKingside: boolean; blackQueenside: boolean };
-  promotionPending: [number, number] | null;
-}
+   board: Board;
+   turn: Color;
+   selected: [number, number] | null;
+   validMoves: [number, number][];
+   status: 'playing' | 'check' | 'checkmate' | 'stalemate';
+   capturedByWhite: Piece[];
+   capturedByBlack: Piece[];
+   moveHistory: string[];
+   enPassantTarget: [number, number] | null;
+   castlingRights: { whiteKingside: boolean; whiteQueenside: boolean; blackKingside: boolean; blackQueenside: boolean };
+   promotionPending: [number, number] | null;
+   lastMove: { from: [number, number]; to: [number, number] } | null;
+ }
 
 export function initBoard(): Board {
   const board: Board = Array(8).fill(null).map(() => Array(8).fill(null));
@@ -37,20 +38,21 @@ export function initBoard(): Board {
 }
 
 export function initGame(): GameState {
-  return {
-    board: initBoard(),
-    turn: 'white',
-    selected: null,
-    validMoves: [],
-    status: 'playing',
-    capturedByWhite: [],
-    capturedByBlack: [],
-    moveHistory: [],
-    enPassantTarget: null,
-    castlingRights: { whiteKingside: true, whiteQueenside: true, blackKingside: true, blackQueenside: true },
-    promotionPending: null,
-  };
-}
+   return {
+     board: initBoard(),
+     turn: 'white',
+     selected: null,
+     validMoves: [],
+     status: 'playing',
+     capturedByWhite: [],
+     capturedByBlack: [],
+     moveHistory: [],
+     enPassantTarget: null,
+     castlingRights: { whiteKingside: true, whiteQueenside: true, blackKingside: true, blackQueenside: true },
+     promotionPending: null,
+    lastMove: null,
+   };
+ }
 
 function inBounds(r: number, c: number) {
   return r >= 0 && r < 8 && c >= 0 && c < 8;
@@ -200,7 +202,7 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
 
   const isPawnPromotion = piece.type === 'pawn' && (tr === 0 || tr === 7);
   if (isPawnPromotion && !promoteTo) {
-    return { ...state, board: newBoard, promotionPending: [tr, tc], selected: null, validMoves: [] };
+    return { ...state, board: newBoard, promotionPending: [tr, tc], selected: null, validMoves: [], lastMove: { from, to } };
   }
   if (isPawnPromotion && promoteTo) {
     newBoard[tr][tc] = { type: promoteTo, color: piece.color };
@@ -251,18 +253,19 @@ export function makeMove(state: GameState, from: [number, number], to: [number, 
   if (!hasLegal) status = inCheck ? 'checkmate' : 'stalemate';
   else if (inCheck) status = 'check';
 
-  return {
-    ...state,
-    board: newBoard,
-    turn: nextTurn,
-    selected: null,
-    validMoves: [],
-    status,
-    capturedByWhite,
-    capturedByBlack,
-    moveHistory: [...state.moveHistory, notation],
-    enPassantTarget,
-    castlingRights: cr,
-    promotionPending: null,
-  };
+return {
+     ...state,
+     board: newBoard,
+     turn: nextTurn,
+     selected: null,
+     validMoves: [],
+     status,
+     capturedByWhite,
+     capturedByBlack,
+     moveHistory: [...state.moveHistory, notation],
+     enPassantTarget,
+     castlingRights: cr,
+     promotionPending: null,
+     lastMove: { from, to },
+   };
 }

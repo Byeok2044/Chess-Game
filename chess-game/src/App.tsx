@@ -45,6 +45,7 @@ export default function App() {
   const {
     vsAI, playerColor, state, flipped, difficulty,
     showHints, showCoords, showSettings, boardTheme, aiThinking, clock,
+    soundEnabled, setSoundEnabled,
     setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
     handleStart, resumeGame, handleSquareClick, handlePromotion, resetGame, goToMenu,
   } = useChessGame();
@@ -200,10 +201,12 @@ export default function App() {
         showHints={showHints}
         showCoords={showCoords}
         flipped={flipped}
+        soundEnabled={soundEnabled}
         boardTheme={boardTheme}
         onToggleHints={() => setShowHints((h) => !h)}
         onToggleCoords={() => setShowCoords((c) => !c)}
         onToggleFlipped={() => setFlipped((f) => !f)}
+        onToggleSound={() => setSoundEnabled((s) => !s)}
         onChangeBoardTheme={setBoardTheme}
         onBack={() => setView('landing')}
       />
@@ -260,9 +263,11 @@ export default function App() {
           showCoords={showCoords}
           flipped={flipped}
           boardTheme={boardTheme}
+          soundEnabled={soundEnabled}
           onToggleHints={() => setShowHints((h) => !h)}
           onToggleCoords={() => setShowCoords((c) => !c)}
           onToggleFlipped={() => setFlipped((f) => !f)}
+          onToggleSound={() => setSoundEnabled((s) => !s)}
           onChangeBoardTheme={setBoardTheme}
         />
       )}

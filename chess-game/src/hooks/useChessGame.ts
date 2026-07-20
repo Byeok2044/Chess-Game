@@ -6,6 +6,7 @@ import type { BoardTheme, TimeControl, Difficulty } from '../GameSettings.ts';
 import { useAiOpponent } from './useAiOpponent.ts';
 import { useChessClock } from './useChessClock.ts';
 import { clearAiCache } from '../AI.ts';
+import { playSound, soundEventForTransition } from '../utils/sound.ts';
 
 export type GameMode = 'menu' | 'playing';
 
@@ -22,6 +23,7 @@ export function useChessGame() {
   const [boardTheme, setBoardTheme] = useState<BoardTheme>(DEFAULT_SETTINGS.boardTheme);
   const [timeControl, setTimeControl] = useState<TimeControl>('none');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const clock = useChessClock(
     timeControl,
@@ -37,7 +39,8 @@ export function useChessGame() {
     playerColor,
     screen,
     DIFFICULTIES[difficulty].depth,
-    !!clock.timedOut
+    !!clock.timedOut,
+    soundEnabled
   );
 
   function handleStart(
@@ -89,7 +92,11 @@ function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: Game
         const movingPiece = state.board[sr][sc]!;
         const isPawnPromotion = movingPiece.type === 'pawn' && (r === 0 || r === 7);
         if (isPawnPromotion) setPendingFrom([sr, sc]);
-        setState(makeMove(state, [sr, sc], [r, c]));
+        const next = makeMove(state, [sr, sc], [r, c]);
+        setState(next);
+        if (!next.promotionPending) {
+          playSound(soundEventForTransition(state, next), soundEnabled);
+        }
         return;
       }
 
@@ -111,7 +118,9 @@ function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: Game
     if (!state.promotionPending || !pendingFrom) return;
     const [tr, tc] = state.promotionPending;
     const [fr, fc] = pendingFrom;
-    setState(makeMove({ ...state, promotionPending: null }, [fr, fc], [tr, tc], type));
+    const next = makeMove({ ...state, promotionPending: null }, [fr, fc], [tr, tc], type);
+    setState(next);
+    playSound(soundEventForTransition(state, next), soundEnabled);
     setPendingFrom(null);
   }
 
@@ -142,6 +151,8 @@ function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: Game
     timeControl,
     difficulty,
     clock,
+    soundEnabled,
+    setSoundEnabled,
     setFlipped,
     setShowHints,
     setShowCoords,

@@ -7,8 +7,10 @@ interface Props {
   showCoords: boolean;
   flipped: boolean;
   boardTheme: BoardTheme;
+  soundEnabled: boolean;
   onToggleHints: () => void;
   onToggleCoords: () => void;
+  onToggleSound: () => void;
   onToggleFlipped: () => void;
   onChangeBoardTheme: (theme: BoardTheme) => void;
 }
@@ -43,8 +45,10 @@ export default function Settings({
   showCoords,
   flipped,
   boardTheme,
+  soundEnabled,
   onToggleHints,
   onToggleCoords,
+  onToggleSound,
   onToggleFlipped,
   onChangeBoardTheme,
 }: Props) {
@@ -57,6 +61,13 @@ export default function Settings({
           desc="Highlight legal squares"
           value={showHints}
           onToggle={onToggleHints}
+        />
+        <ToggleRow
+          icon="♪"
+          name="Sound effects"
+          desc="Move, capture, and check sounds"
+          value={soundEnabled}
+          onToggle={onToggleSound}
         />
         <ToggleRow
           icon="⊞"
