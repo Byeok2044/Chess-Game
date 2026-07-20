@@ -103,6 +103,7 @@ export default function Settings({
                   onClick={() => onChangeBoardTheme(key)}
                   title={t.name}
                   aria-label={`${t.name} board theme`}
+                  aria-pressed={boardTheme === key}
                 >
                   <span style={{ background: t.light }} />
                   <span style={{ background: t.dark }} />

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+// chess-game/src/Board.tsx
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import type { GameState, Piece, PieceType } from './Chess.ts';
 
 const PIECES: Record<string, string> = {
@@ -11,6 +11,13 @@ const PIECES: Record<string, string> = {
 
 function pieceChar(piece: Piece) {
   return PIECES[`${piece.color}-${piece.type}`] || '?';
+}
+
+function colLetter(c: number) {
+  return String.fromCharCode(97 + c);
+}
+function algebraic(r: number, c: number) {
+  return `${colLetter(c)}${8 - r}`;
 }
 
 interface Props {
@@ -25,93 +32,101 @@ interface Props {
   locked?: boolean;
 }
 
-interface AnimState {
-  toKey: string;
-  dx: number;
-  dy: number;
-  transition: boolean;
-}
+export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme, hintFrom, locked }: Props) {
+  const { board, selected, validMoves, promotionPending, turn, status } = state;
 
-const MOVE_ANIM_MS = 180;
-
-export default function Board({
-  state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme, hintFrom, locked,
-}: Props) {
-  const { board, selected, validMoves, promotionPending } = state;
-  const lastMove = (state as any).lastMove ?? null;
-
-  const rows = flipped ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
-  const cols = flipped ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+  const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
 
   const isValidMove = (r: number, c: number) => showValidMoves && validMoves.some(([vr, vc]) => vr === r && vc === c);
   const isSelected = (r: number, c: number) => selected?.[0] === r && selected?.[1] === c;
   const isHint = (r: number, c: number) => hintFrom?.[0] === r && hintFrom?.[1] === c;
-  const isLastMove = (r: number, c: number) =>
-    !!lastMove && ((lastMove.from[0] === r && lastMove.from[1] === c) || (lastMove.to[0] === r && lastMove.to[1] === c));
   const isInCheck = (r: number, c: number) => {
     const p = board[r][c];
-    return p?.type === 'king' && p.color === state.turn && (state.status === 'check' || state.status === 'checkmate');
+    return p?.type === 'king' && p.color === turn && (status === 'check' || status === 'checkmate');
   };
+
+  // ── Roving tabindex / keyboard navigation ─────────────────────────
+  const [focused, setFocused] = useState<[number, number]>(() => selected ?? [flipped ? 0 : 7, flipped ? 7 : 0]);
+  const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  useEffect(() => {
+    if (selected) setFocused(selected);
+  }, [selected]);
+
+  useEffect(() => {
+    const el = cellRefs.current.get(`${focused[0]}-${focused[1]}`);
+    el?.focus();
+  }, [focused]);
+
+  function handleKeyDown(e: KeyboardEvent<HTMLDivElement>, r: number, c: number) {
+    if (locked) return;
+    const dirs: Record<string, [number, number]> = {
+      ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1],
+    };
+    const dir = dirs[e.key];
+    if (dir) {
+      e.preventDefault();
+      let [nr, nc] = [r + dir[0], c + dir[1]];
+      nr = Math.min(7, Math.max(0, nr));
+      nc = Math.min(7, Math.max(0, nc));
+      setFocused([nr, nc]);
+      return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSquareClick(r, c);
+    }
+  }
+
+  // ── Drag and drop feedback ─────────────────────────────────────────
+  const [dragOver, setDragOver] = useState<[number, number] | null>(null);
+  const dragging = useRef(false);
+
+  function handleDragStart(r: number, c: number) {
+    const piece = board[r][c];
+    if (locked || !piece || piece.color !== turn) return;
+    dragging.current = true;
+    onSquareClick(r, c); // select the source square, same as a click
+  }
+
+  function handleDragOver(e: React.DragEvent, r: number, c: number) {
+    if (!dragging.current) return;
+    e.preventDefault();
+    setDragOver([r, c]);
+  }
+
+  function handleDrop(e: React.DragEvent, r: number, c: number) {
+    e.preventDefault();
+    if (!dragging.current) return;
+    dragging.current = false;
+    setDragOver(null);
+    onSquareClick(r, c); // attempt the move, same as a second click
+  }
+
+  function handleDragEnd() {
+    dragging.current = false;
+    setDragOver(null);
+  }
 
   const themeStyle = boardTheme
     ? ({ '--light-sq': boardTheme.light, '--dark-sq': boardTheme.dark } as CSSProperties)
     : undefined;
 
-  // ── Drag-and-drop (reuses the same onSquareClick pipeline as click-click) ──
-  const [dragFrom, setDragFrom] = useState<[number, number] | null>(null);
-
-  // ── Move animation (FLIP: offset-then-settle) ──────────────────────────
-  const boardRef = useRef<HTMLDivElement>(null);
-  const [squareSize, setSquareSize] = useState(0);
-  const [anim, setAnim] = useState<AnimState | null>(null);
-  const lastMoveKey = lastMove
-    ? `${lastMove.from[0]},${lastMove.from[1]}-${lastMove.to[0]},${lastMove.to[1]}`
-    : null;
-  const prevLastMoveKeyRef = useRef<string | null>(lastMoveKey);
-
-  useEffect(() => {
-    const el = boardRef.current;
-    if (!el) return;
-    const update = () => setSquareSize(el.clientWidth / 8);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (lastMoveKey && lastMoveKey !== prevLastMoveKeyRef.current && lastMove && squareSize > 0) {
-      const [fr, fc] = lastMove.from;
-      const [tr, tc] = lastMove.to;
-      const colOf = (c: number) => (flipped ? 7 - c : c);
-      const rowOf = (r: number) => (flipped ? 7 - r : r);
-      const dx = (colOf(fc) - colOf(tc)) * squareSize;
-      const dy = (rowOf(fr) - rowOf(tr)) * squareSize;
-      const toKey = `${tr}-${tc}`;
-
-      setAnim({ toKey, dx, dy, transition: false });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setAnim((a) => (a && a.toKey === toKey ? { ...a, dx: 0, dy: 0, transition: true } : a));
-        });
-      });
-    }
-    prevLastMoveKeyRef.current = lastMoveKey;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastMoveKey, squareSize, flipped]);
-
-  useEffect(() => {
-    if (anim?.transition) {
-      const t = setTimeout(() => setAnim(null), MOVE_ANIM_MS + 60);
-      return () => clearTimeout(t);
-    }
-  }, [anim]);
+  const statusAnnouncement =
+    status === 'checkmate' ? `Checkmate. ${turn === 'white' ? 'Black' : 'White'} wins.`
+    : status === 'check' ? `${turn === 'white' ? 'White' : 'Black'} is in check.`
+    : status === 'stalemate' ? 'Stalemate.'
+    : '';
 
   return (
     <div style={{ position: 'relative', ...themeStyle }} className={locked ? 'board-locked' : undefined}>
-      <div className="board" ref={boardRef}>
+      {/* Screen-reader-only live region so check/checkmate/stalemate get announced */}
+      <span className="sr-only" role="status" aria-live="polite">{statusAnnouncement}</span>
+
+      <div className="board" role="grid" aria-label="Chess board">
         {rows.map((r) => (
-          <div key={r} className="board-row">
+          <div key={r} className="board-row" role="row">
             {cols.map((c) => {
               const isLight = (r + c) % 2 === 0;
               const piece = board[r][c];
@@ -119,67 +134,65 @@ export default function Board({
               const sel = isSelected(r, c);
               const check = isInCheck(r, c);
               const hint = isHint(r, c);
-              const lastMoveSq = isLastMove(r, c);
-              const isAnimatingPiece = anim?.toKey === `${r}-${c}`;
-              const isDraggingPiece = dragFrom?.[0] === r && dragFrom?.[1] === c;
+              const isDragOver = dragOver?.[0] === r && dragOver?.[1] === c;
+              const dragOverLegal = isDragOver && validMoves.some(([vr, vc]) => vr === r && vc === c);
+              const dragOverIllegal = isDragOver && !dragOverLegal;
+              const isFocusTarget = focused[0] === r && focused[1] === c;
 
-              const pieceStyle: CSSProperties | undefined = isAnimatingPiece
-                ? {
-                    transform: `translate(${anim!.dx}px, ${anim!.dy}px)`,
-                    transition: anim!.transition
-                      ? `transform ${MOVE_ANIM_MS}ms cubic-bezier(0.2, 0.6, 0.35, 1)`
-                      : 'none',
-                  }
-                : undefined;
+              const label = [
+                algebraic(r, c),
+                piece ? `${piece.color} ${piece.type}` : 'empty',
+                sel ? 'selected' : '',
+                valid ? 'valid move' : '',
+                check ? 'in check' : '',
+              ].filter(Boolean).join(', ');
 
               return (
                 <div
                   key={c}
+                  ref={(el) => {
+                    if (el) cellRefs.current.set(`${r}-${c}`, el);
+                    else cellRefs.current.delete(`${r}-${c}`);
+                  }}
+                  role="gridcell"
+                  aria-label={label}
+                  aria-selected={sel}
+                  tabIndex={isFocusTarget ? 0 : -1}
                   className={[
                     'square',
                     isLight ? 'light' : 'dark',
                     sel ? 'selected' : '',
                     check ? 'in-check' : '',
                     hint ? 'hint-square' : '',
-                    lastMoveSq ? 'last-move' : '',
+                    dragOverLegal ? 'drag-over-legal' : '',
+                    dragOverIllegal ? 'drag-over-illegal' : '',
                   ].join(' ')}
                   onClick={() => onSquareClick(r, c)}
-                  onDragOver={(e) => {
-                    if (dragFrom) e.preventDefault();
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (!dragFrom) return;
-                    setDragFrom(null);
-                    onSquareClick(r, c);
-                  }}
+                  onKeyDown={(e) => handleKeyDown(e, r, c)}
+                  onFocus={() => setFocused([r, c])}
+                  onDragOver={(e) => handleDragOver(e, r, c)}
+                  onDrop={(e) => handleDrop(e, r, c)}
+                  onDragLeave={() => setDragOver((d) => (d && d[0] === r && d[1] === c ? null : d))}
                 >
-                  {valid && <div className={piece ? 'capture-ring' : 'move-dot'} />}
+                  {valid && (
+                    <div className={piece ? 'capture-ring' : 'move-dot'} aria-hidden="true" />
+                  )}
                   {piece && (
                     <span
-                      className={`piece ${piece.color} ${isDraggingPiece ? 'dragging' : ''}`}
-                      style={pieceStyle}
-                      draggable={!locked}
-                      onDragStart={(e) => {
-                        if (locked) {
-                          e.preventDefault();
-                          return;
-                        }
-                        e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('text/plain', `${r},${c}`);
-                        setDragFrom([r, c]);
-                        onSquareClick(r, c);
-                      }}
-                      onDragEnd={() => setDragFrom(null)}
+                      className={`piece ${piece.color}`}
+                      draggable={!locked && piece.color === turn}
+                      onDragStart={() => handleDragStart(r, c)}
+                      onDragEnd={handleDragEnd}
+                      aria-hidden="true"
                     >
                       {pieceChar(piece)}
                     </span>
                   )}
                   {showCoordinates && c === (flipped ? 7 : 0) && (
-                    <span className="coord rank">{8 - r}</span>
+                    <span className="coord rank" aria-hidden="true">{8 - r}</span>
                   )}
                   {showCoordinates && r === (flipped ? 0 : 7) && (
-                    <span className="coord file">{String.fromCharCode(97 + c)}</span>
+                    <span className="coord file" aria-hidden="true">{String.fromCharCode(97 + c)}</span>
                   )}
                 </div>
               );
@@ -193,9 +206,11 @@ export default function Board({
           <div className="promotion-modal">
             <p>Promote pawn to:</p>
             <div className="promotion-choices">
-              {(['queen', 'rook', 'bishop', 'knight'] as PieceType[]).map((type) => (
+              {(['queen', 'rook', 'bishop', 'knight'] as PieceType[]).map(type => (
                 <button key={type} className="promo-btn" onClick={() => onPromotion(type)}>
-                  <span className={`piece ${state.turn}`}>{pieceChar({ type, color: state.turn })}</span>
+                  <span className={`piece ${state.turn}`} aria-hidden="true">
+                    {pieceChar({ type, color: state.turn })}
+                  </span>
                   <span>{type}</span>
                 </button>
               ))}

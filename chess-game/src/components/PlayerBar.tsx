@@ -1,3 +1,4 @@
+// chess-game/src/components/PlayerBar.tsx
 import { formatClock } from '../utils/formatTime.ts';
 
 interface Props {
@@ -15,6 +16,7 @@ export default function PlayerBar({
   label, avatarIcon, avatarClass, capturedIcons, lead, thinking, timeMs, clockActive,
 }: Props) {
   const lowTime = timeMs !== undefined && timeMs <= 30000;
+  const criticalTime = timeMs !== undefined && timeMs <= 10000;
 
   return (
     <div className="player-bar">
@@ -25,7 +27,10 @@ export default function PlayerBar({
       <span className="captured-pieces">{capturedIcons.join('')}</span>
       {thinking && <span className="thinking">thinking…</span>}
       {timeMs !== undefined && (
-        <span className={`player-clock ${clockActive ? 'active-clock' : ''} ${lowTime ? 'low-time' : ''}`}>
+        <span
+          className={`player-clock ${clockActive ? 'active-clock' : ''} ${lowTime ? 'low-time' : ''} ${criticalTime && clockActive ? 'critical-time' : ''}`}
+          aria-live={criticalTime && clockActive ? 'assertive' : undefined}
+        >
           {formatClock(timeMs)}
         </span>
       )}

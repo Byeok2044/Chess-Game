@@ -113,6 +113,7 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
                     type="button"
                     className={`time-btn ${twoPlayerTimeControl === tc ? 'active' : ''}`}
                     onClick={() => setTwoPlayerTimeControl(tc)}
+                    aria-pressed={twoPlayerTimeControl === tc}
                     title={TIME_CONTROLS[tc].desc}
                   >
                     {tc === 'none' ? 'No timer' : TIME_CONTROLS[tc].label}
@@ -133,7 +134,6 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
           </>
         )}
 
-        {/* ── Step 2b: vs-AI setup ────────────────────────── */}
         {pickedMode === 'vs-ai' && (
           <>
             <p className="menu-subtitle">vs Computer</p>
@@ -154,6 +154,7 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
                     type="button"
                     className={`time-btn ${aiDifficulty === d ? 'active' : ''}`}
                     onClick={() => setAiDifficulty(d)}
+                    aria-pressed={aiDifficulty === d}
                     title={DIFFICULTIES[d].desc}
                   >
                     {DIFFICULTIES[d].label}
@@ -168,6 +169,7 @@ export default function Menu({ onStart, onPlayOnline, resumeLabel, onResume, onB
                     type="button"
                     className={`time-btn ${aiTimeControl === tc ? 'active' : ''}`}
                     onClick={() => setAiTimeControl(tc)}
+                    aria-pressed={aiTimeControl === tc}
                     title={TIME_CONTROLS[tc].desc}
                   >
                     {tc === 'none' ? 'No timer' : TIME_CONTROLS[tc].label}

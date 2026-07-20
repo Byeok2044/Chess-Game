@@ -1,12 +1,21 @@
+import { useEffect, useRef } from 'react';
+
 interface Props {
   moveHistory: string[];
 }
 
 export default function MoveHistory({ moveHistory }: Props) {
+  const listRef = useRef<HTMLOListElement>(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [moveHistory.length]);
+
   if (moveHistory.length === 0) return <p className="no-moves">No moves yet</p>;
 
   return (
-    <ol className="moves-grid">
+    <ol className="moves-grid" ref={listRef}>
       {Array.from({ length: Math.ceil(moveHistory.length / 2) }, (_, i) => (
         <li key={i} className="move-pair">
           <span className="move-num">{i + 1}.</span>
