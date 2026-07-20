@@ -33,7 +33,7 @@ interface Props {
 }
 
 export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme, hintFrom, locked }: Props) {
-  const { board, selected, validMoves, promotionPending, turn, status } = state;
+  const { board, selected, validMoves, promotionPending, turn, status, lastMove } = state;
 
   const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
   const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
@@ -45,6 +45,11 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
     const p = board[r][c];
     return p?.type === 'king' && p.color === turn && (status === 'check' || status === 'checkmate');
   };
+  const isLastMove = (r: number, c: number) =>
+    !!lastMove && (
+      (lastMove.from[0] === r && lastMove.from[1] === c) ||
+      (lastMove.to[0] === r && lastMove.to[1] === c)
+    );
 
   // ── Roving tabindex / keyboard navigation ─────────────────────────
   const [focused, setFocused] = useState<[number, number]>(() => selected ?? [flipped ? 0 : 7, flipped ? 7 : 0]);
@@ -134,6 +139,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
               const sel = isSelected(r, c);
               const check = isInCheck(r, c);
               const hint = isHint(r, c);
+              const lastMoveSq = isLastMove(r, c);
               const isDragOver = dragOver?.[0] === r && dragOver?.[1] === c;
               const dragOverLegal = isDragOver && validMoves.some(([vr, vc]) => vr === r && vc === c);
               const dragOverIllegal = isDragOver && !dragOverLegal;
@@ -145,6 +151,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
                 sel ? 'selected' : '',
                 valid ? 'valid move' : '',
                 check ? 'in check' : '',
+                lastMoveSq ? 'last move' : '',
               ].filter(Boolean).join(', ');
 
               return (
@@ -164,6 +171,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
                     sel ? 'selected' : '',
                     check ? 'in-check' : '',
                     hint ? 'hint-square' : '',
+                    lastMoveSq ? 'last-move' : '',
                     dragOverLegal ? 'drag-over-legal' : '',
                     dragOverIllegal ? 'drag-over-illegal' : '',
                   ].join(' ')}
