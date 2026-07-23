@@ -2,6 +2,7 @@ import { initGame, makeMove } from '../Chess.ts';
 import type { GameState } from '../Chess.ts';
 import { boardFromFEN, turnFromFEN } from '../utils/fen.ts';
 import type { Puzzle } from './puzzleData.ts';
+import { bandForRating, type DifficultyBand } from './ratingBands.ts';
 
 export function colLetter(c: number) {
   return String.fromCharCode(97 + c);
@@ -38,11 +39,6 @@ export interface PuzzleGoal {
   playerMoveCount: number;
 }
 
-/**
- * Simulate the puzzle's full scripted solution once (not the user's attempt)
- * to work out what the actual objective is — mate, material win, or a
- * plain tactic — instead of relying on hand-authored, easily-stale metadata.
- */
 export function computeGoal(puzzle: Puzzle): PuzzleGoal {
   const playerMoveCount = Math.ceil(puzzle.solution.length / 2);
   let state = stateFromPuzzle(puzzle.fen);
@@ -65,7 +61,7 @@ export function computeGoal(puzzle: Puzzle): PuzzleGoal {
       state = next;
     }
   } catch {
-    // Fall through to the generic label below if a puzzle's solution is malformed.
+    
   }
 
   if (state.status === 'checkmate') {
@@ -77,10 +73,8 @@ export function computeGoal(puzzle: Puzzle): PuzzleGoal {
   return { label: 'Find the best move', playerMoveCount };
 }
 
-export function difficultyBadge(rating: number): 'easy' | 'medium' | 'hard' {
-  if (rating < 900) return 'easy';
-  if (rating < 1300) return 'medium';
-  return 'hard';
+export function difficultyBadge(rating: number): DifficultyBand {
+  return bandForRating(rating).key;
 }
 
 const PROGRESS_KEY = 'chess-puzzle-progress';
@@ -100,6 +94,6 @@ export function markPuzzleSolved(id: string) {
     solved.add(id);
     localStorage.setItem(PROGRESS_KEY, JSON.stringify([...solved]));
   } catch {
-    // Best-effort only — progress just won't persist across sessions.
+    
   }
 }

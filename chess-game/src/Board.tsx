@@ -29,10 +29,14 @@ interface Props {
   showValidMoves: boolean;
   boardTheme?: { light: string; dark: string };
   hintFrom?: [number, number] | null;
+  hintTo?: [number, number] | null;   // NEW
   locked?: boolean;
 }
 
-export default function Board({ state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves, boardTheme, hintFrom, locked }: Props) {
+export default function Board({
+  state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves,
+  boardTheme, hintFrom, hintTo, locked,   // NEW: hintTo
+}: Props) {
   const { board, selected, validMoves, promotionPending, turn, status, lastMove } = state;
 
   const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
@@ -40,7 +44,9 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
 
   const isValidMove = (r: number, c: number) => showValidMoves && validMoves.some(([vr, vc]) => vr === r && vc === c);
   const isSelected = (r: number, c: number) => selected?.[0] === r && selected?.[1] === c;
-  const isHint = (r: number, c: number) => hintFrom?.[0] === r && hintFrom?.[1] === c;
+    const isHint = (r: number, c: number) =>
+    (hintFrom?.[0] === r && hintFrom?.[1] === c) ||
+    (hintTo?.[0] === r && hintTo?.[1] === c);
   const isInCheck = (r: number, c: number) => {
     const p = board[r][c];
     return p?.type === 'king' && p.color === turn && (status === 'check' || status === 'checkmate');
@@ -92,7 +98,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
     const piece = board[r][c];
     if (locked || !piece || piece.color !== turn) return;
     dragging.current = true;
-    onSquareClick(r, c); // select the source square, same as a click
+    onSquareClick(r, c); 
   }
 
   function handleDragOver(e: React.DragEvent, r: number, c: number) {
@@ -106,7 +112,7 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
     if (!dragging.current) return;
     dragging.current = false;
     setDragOver(null);
-    onSquareClick(r, c); // attempt the move, same as a second click
+    onSquareClick(r, c); 
   }
 
   function handleDragEnd() {
@@ -126,7 +132,6 @@ export default function Board({ state, onSquareClick, onPromotion, flipped, show
 
   return (
     <div style={{ position: 'relative', ...themeStyle }} className={locked ? 'board-locked' : undefined}>
-      {/* Screen-reader-only live region so check/checkmate/stalemate get announced */}
       <span className="sr-only" role="status" aria-live="polite">{statusAnnouncement}</span>
 
       <div className="board" role="grid" aria-label="Chess board">

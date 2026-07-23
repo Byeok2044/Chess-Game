@@ -28,6 +28,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [movesCompleted, setMovesCompleted] = useState(0);
   const [locked, setLocked] = useState(false);
   const [hintFrom, setHintFrom] = useState<[number, number] | null>(null);
+  const [hintTo, setHintTo] = useState<[number, number] | null>(null);
+  const [hintPresses, setHintPresses] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [solved, setSolved] = useState<Set<string>>(() => loadSolvedPuzzles());
 
@@ -43,6 +45,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     setMovesCompleted(0);
     setLocked(false);
     setHintFrom(null);
+    setHintTo(null);
+    setHintPresses(0);
     setRevealed(false);
   }
 
@@ -51,6 +55,18 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     if (!revealed) {
       markPuzzleSolved(puzzle.id);
       setSolved((prev) => new Set(prev).add(puzzle.id));
+    }
+  }
+
+  function handleHint() {
+    if (locked || feedback === 'complete') return;
+    const { from, to } = fromUCI(puzzle.solution[step]);
+    if (hintPresses === 0) {
+      setHintFrom(from);
+      setHintPresses(1);
+    } else if (hintPresses === 1) {
+      setHintTo(to);
+      setHintPresses(2);
     }
   }
 
@@ -66,11 +82,15 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
       if (isValid) {
         const uci = toUCI([sr, sc], [r, c]);
         const expected = puzzle.solution[step];
+        const alternates = puzzle.solutionAlternates?.[step] ?? [];
+        const isCorrect = uci === expected || alternates.includes(uci);
 
-        if (uci === expected) {
+        if (isCorrect) {
           const next = makeMove(state, [sr, sc], [r, c]);
           const isLastMove = step + 1 >= puzzle.solution.length;
           setHintFrom(null);
+          setHintTo(null);
+          setHintPresses(0);
           setMovesCompleted((m) => m + 1);
           setState(next);
 
@@ -105,6 +125,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
       if (piece && piece.color === state.turn) {
         setState({ ...state, selected: [r, c], validMoves: legalMoves(state, r, c) });
         setHintFrom(null);
+        setHintTo(null);
         return;
       }
       setState({ ...state, selected: null, validMoves: [] });
@@ -114,18 +135,15 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     if (piece && piece.color === state.turn) {
       setState({ ...state, selected: [r, c], validMoves: legalMoves(state, r, c) });
       setHintFrom(null);
+      setHintTo(null);
     }
-  }
-
-  function handleHint() {
-    if (locked || feedback === 'complete') return;
-    setHintFrom(fromUCI(puzzle.solution[step]).from);
   }
 
   function handleRevealSolution() {
     if (locked || feedback === 'complete') return;
     setRevealed(true);
     setHintFrom(null);
+    setHintTo(null);
     setLocked(true);
 
     let s = state;
@@ -180,6 +198,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
                 showCoordinates
                 showValidMoves
                 hintFrom={hintFrom}
+                hintTo={hintTo}
                 locked={locked}
               />
             </div>
