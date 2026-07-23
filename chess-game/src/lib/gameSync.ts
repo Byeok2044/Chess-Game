@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase, type GameRow, type SavedGameRow } from './supabase.ts';
 import { getOrFetch, appCache } from './cache.ts';
 import type { GameState, Color } from '../Chess.ts';
+import type { TimeControl } from '../GameSettings.ts';
+import { parseTimeControl } from '../utils/timeControl.ts';
 
 const ABANDON_GRACE_MS = 20000;
 const SAVED_GAMES_TTL_MS = 15000;
@@ -10,9 +12,6 @@ function savedGamesKey(userId: string) {
   return `saved-games:${userId}`;
 }
 
-// ─────────────────────────────────────────────
-// Save & resume (local / vs-AI games)
-// ─────────────────────────────────────────────
 export async function saveGame(
   userId: string,
   state: GameState,
@@ -64,13 +63,19 @@ export async function deleteSavedGame(id: string, userId: string) {
   return result;
 }
 
-// ─────────────────────────────────────────────
-// Multiplayer: create / join
-// ─────────────────────────────────────────────
-export async function createGame(userId: string, initialState: GameState) {
+export async function createGame(userId: string, initialState: GameState, timeControl: TimeControl = 'none') {
+  const parsed = parseTimeControl(timeControl);
   const { data, error } = await supabase
     .from('games')
-    .insert({ white_id: userId, board_state: initialState, turn: 'white', status: 'waiting' })
+    .insert({
+      white_id: userId,
+      board_state: initialState,
+      turn: 'white',
+      status: 'waiting',
+      time_control: timeControl,
+      white_ms: parsed?.initialMs ?? null,
+      black_ms: parsed?.initialMs ?? null,
+    })
     .select()
     .single();
   return { data: data as GameRow | null, error };
@@ -88,7 +93,7 @@ export async function joinGameByCode(inviteCode: string, userId: string) {
 
   const { data, error } = await supabase
     .from('games')
-    .update({ black_id: userId, status: 'active' })
+    .update({ black_id: userId, status: 'active', last_move_at: new Date().toISOString() })
     .eq('id', game.id)
     .select()
     .single();
@@ -96,10 +101,12 @@ export async function joinGameByCode(inviteCode: string, userId: string) {
   return { data: data as GameRow | null, error };
 }
 
-// ─────────────────────────────────────────────
-// Moves
-// ─────────────────────────────────────────────
-export async function pushMove(gameId: string, state: GameState, turn: 'white' | 'black') {
+export async function pushMove(
+  gameId: string,
+  state: GameState,
+  turn: 'white' | 'black',
+  clocks?: { whiteMs: number; blackMs: number } | null
+) {
   const winner =
     state.status === 'checkmate' ? (turn === 'white' ? 'black' : 'white')
     : state.status === 'stalemate' ? 'draw'
@@ -112,13 +119,25 @@ export async function pushMove(gameId: string, state: GameState, turn: 'white' |
       turn,
       status: winner ? 'finished' : 'active',
       ...(winner ? { winner } : {}),
+      ...(clocks
+        ? { white_ms: clocks.whiteMs, black_ms: clocks.blackMs, last_move_at: new Date().toISOString() }
+        : {}),
     })
     .eq('id', gameId);
 }
 
-// ─────────────────────────────────────────────
-// Ending a game early: resignation & abandonment
-// ─────────────────────────────────────────────
+export function computeMoveClocks(game: GameRow, mover: Color): { whiteMs: number; blackMs: number } | null {
+  const parsed = parseTimeControl(game.time_control);
+  if (!parsed || game.white_ms == null || game.black_ms == null) return null;
+
+  const elapsed = Math.max(0, Date.now() - new Date(game.last_move_at).getTime());
+  let whiteMs = game.white_ms;
+  let blackMs = game.black_ms;
+  if (mover === 'white') whiteMs = Math.max(0, whiteMs - elapsed) + parsed.incrementMs;
+  else blackMs = Math.max(0, blackMs - elapsed) + parsed.incrementMs;
+  return { whiteMs, blackMs };
+}
+
 export async function resignGame(gameId: string, resigningColor: Color) {
   const winner = resigningColor === 'white' ? 'black' : 'white';
   return supabase
@@ -136,11 +155,15 @@ export async function claimAbandonment(gameId: string, remainingColor: Color) {
     .eq('status', 'active');
 }
 
-// ─────────────────────────────────────────────
-// Call once a game finishes to update both players' win/loss/draw counts.
-// Also invalidates each player's cached profile and the leaderboard,
-// since ratings/records just changed.
-// ─────────────────────────────────────────────
+export async function claimTimeout(gameId: string, timedOutColor: Color) {
+  const winner = timedOutColor === 'white' ? 'black' : 'white';
+  return supabase
+    .from('games')
+    .update({ status: 'finished', winner })
+    .eq('id', gameId)
+    .eq('status', 'active'); // guards against both clients racing to claim it
+}
+
 export async function recordResult(game: GameRow) {
   if (!game.winner || !game.white_id || !game.black_id) return;
 
@@ -165,10 +188,6 @@ export async function recordResult(game: GameRow) {
   appCache.invalidate('leaderboard');
 }
 
-// ─────────────────────────────────────────────
-// React hook: subscribe to a live multiplayer game
-// (Not cached — real-time data via postgres_changes should never be stale.)
-// ─────────────────────────────────────────────
 export function useMultiplayerGame(gameId: string | null) {
   const [game, setGame] = useState<GameRow | null>(null);
   const resultRecorded = useRef(false);
@@ -206,10 +225,6 @@ export function useMultiplayerGame(gameId: string | null) {
   return game;
 }
 
-// ─────────────────────────────────────────────
-// React hook: detect an opponent disconnecting and
-// claim the win if they don't come back in time
-// ─────────────────────────────────────────────
 export function usePresenceAbandonment(
   gameId: string | null,
   game: GameRow | null,

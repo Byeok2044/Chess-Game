@@ -3,6 +3,8 @@ import { initGame } from './Chess.ts';
 import { createGame, joinGameByCode } from './lib/gameSync.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import AuthPanel from './AuthPanel.tsx';
+import { TIME_CONTROLS } from './GameSettings.ts';
+import type { TimeControl } from './GameSettings.ts';
 
 export default function OnlineLobby({ onEnterGame, onBack }: {
   onEnterGame: (gameId: string, color: 'white' | 'black') => void;
@@ -10,13 +12,14 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
 }) {
   const { session } = useAuth();
   const [code, setCode] = useState('');
+  const [timeControl, setTimeControl] = useState<TimeControl>('none');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleCreate() {
     if (!session) return;
     setBusy(true);
-    const { data, error } = await createGame(session.user.id, initGame());
+    const { data, error } = await createGame(session.user.id, initGame(), timeControl);
     setBusy(false);
     if (error || !data) { setError(error?.message ?? 'Could not create game'); return; }
     onEnterGame(data.id, 'white');
@@ -40,10 +43,29 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
           <AuthPanel />
         ) : (
           <div className="menu-cards" style={{ gridTemplateColumns: '1fr' }}>
-            <button className="menu-card" onClick={handleCreate} disabled={busy}>
+            <div className="menu-card ai-card">
               <div className="menu-card-label">Create a game</div>
               <div className="menu-card-desc">Get an invite code to share with a friend</div>
-            </button>
+
+              <div className="time-choice">
+                {(Object.keys(TIME_CONTROLS) as TimeControl[]).map((tc) => (
+                  <button
+                    key={tc}
+                    type="button"
+                    className={`time-btn ${timeControl === tc ? 'active' : ''}`}
+                    onClick={() => setTimeControl(tc)}
+                    aria-pressed={timeControl === tc}
+                    title={TIME_CONTROLS[tc].desc}
+                  >
+                    {tc === 'none' ? 'No timer' : TIME_CONTROLS[tc].label}
+                  </button>
+                ))}
+              </div>
+
+              <button className="btn-primary" style={{ marginTop: 10 }} onClick={handleCreate} disabled={busy}>
+                {busy ? 'Creating…' : 'Create'}
+              </button>
+            </div>
 
             <div className="menu-card ai-card">
               <div className="menu-card-label">Join with a code</div>

@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Color } from '../Chess.ts';
 import type { TimeControl } from '../GameSettings.ts';
-
-function parseTimeControl(tc: TimeControl): { initialMs: number; incrementMs: number } | null {
-  if (tc === 'none') return null;
-  const [minutes, incSeconds] = tc.split('+').map(Number);
-  return { initialMs: minutes * 60 * 1000, incrementMs: incSeconds * 1000 };
-}
+import { parseTimeControl } from '../utils/timeControl.ts';
 
 export function useChessClock(
   timeControl: TimeControl,

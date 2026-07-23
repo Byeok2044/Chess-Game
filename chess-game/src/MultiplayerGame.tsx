@@ -5,7 +5,11 @@ import MoveHistory from './components/MoveHistory.tsx';
 import PlayerBar from './components/PlayerBar.tsx';
 import { legalMoves, makeMove } from './Chess.ts';
 import type { PieceType, GameState } from './Chess.ts';
-import { useMultiplayerGame, usePresenceAbandonment, pushMove, resignGame } from './lib/gameSync.ts';
+import {
+  useMultiplayerGame, usePresenceAbandonment, pushMove, resignGame,
+  claimTimeout, computeMoveClocks,
+} from './lib/gameSync.ts';
+import { useMultiplayerClock } from './hooks/useMultiplayerClock.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { materialScore } from './utils/Material.ts';
@@ -20,6 +24,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   const { session } = useAuth();
   const game = useMultiplayerGame(gameId);
   const { opponentOnline } = usePresenceAbandonment(gameId, game, playerColor, session?.user?.id ?? null);
+  const clock = useMultiplayerClock(game);
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [validMoves, setValidMoves] = useState<[number, number][]>([]);
   const [pendingFrom, setPendingFrom] = useState<[number, number] | null>(null);
@@ -28,6 +33,12 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
     setSelected(null);
     setValidMoves([]);
   }, [game?.turn]);
+
+  useEffect(() => {
+    if (clock.timedOut && game?.status === 'active') {
+      claimTimeout(gameId, clock.timedOut);
+    }
+  }, [clock.timedOut, game?.status, gameId]);
 
   if (!game) {
     return (
@@ -54,7 +65,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   }
 
   const boardState = game.board_state;
-  const myTurn = game.turn === playerColor && game.status === 'active';
+  const myTurn = game.turn === playerColor && game.status === 'active' && !clock.timedOut;
   const displayState: GameState = { ...boardState, selected, validMoves };
   const gameOver = game.status === 'finished' || game.status === 'abandoned';
 
@@ -86,7 +97,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
         if (isPromotion) setPendingFrom([sr, sc]);
         setSelected(null);
         setValidMoves([]);
-        pushMove(gameId, next, next.turn);
+        pushMove(gameId, next, next.turn, computeMoveClocks(game!, playerColor));
         return;
       }
 
@@ -113,7 +124,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
     const [fr, fc] = pendingFrom;
     const next = makeMove({ ...boardState, promotionPending: null }, [fr, fc], [tr, tc], type);
     setPendingFrom(null);
-    pushMove(gameId, next, next.turn);
+    pushMove(gameId, next, next.turn, computeMoveClocks(game!, playerColor));
   }
 
   const scores = materialScore(boardState);
@@ -158,6 +169,8 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
             capturedIcons={capturedIconsFor(boardState.capturedByBlack, 'white')}
             lead={blackLead}
             thinking={false}
+            timeMs={clock.hasClock ? clock.blackMs : undefined}
+            clockActive={clock.hasClock && game.turn === 'black' && game.status === 'active'}
           />
 
           <Board
@@ -176,6 +189,8 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
             capturedIcons={capturedIconsFor(boardState.capturedByWhite, 'black')}
             lead={whiteLead}
             thinking={false}
+            timeMs={clock.hasClock ? clock.whiteMs : undefined}
+            clockActive={clock.hasClock && game.turn === 'white' && game.status === 'active'}
           />
         </div>
 

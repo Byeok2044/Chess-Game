@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { GameState } from '../Chess.ts';
+import type { TimeControl } from '../GameSettings.ts';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -32,6 +33,10 @@ export interface GameRow {
   turn: 'white' | 'black';
   board_state: GameState;
   winner: 'white' | 'black' | 'draw' | null;
+  time_control: TimeControl;
+  white_ms: number | null;
+  black_ms: number | null;
+  last_move_at: string;
   created_at: string;
   updated_at: string;
 }
