@@ -29,6 +29,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [validMoves, setValidMoves] = useState<[number, number][]>([]);
   const [pendingFrom, setPendingFrom] = useState<[number, number] | null>(null);
+  const [usernames, setUsernames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setSelected(null);
@@ -40,6 +41,11 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
       claimTimeout(gameId, clock.timedOut);
     }
   }, [clock.timedOut, game?.status, gameId]);
+
+  useEffect(() => {
+  if (!game) return;
+  getUsernames([game.white_id, game.black_id]).then(setUsernames).catch(() => {});
+  }, [game?.white_id, game?.black_id]);
 
   if (!game) {
     return (
@@ -65,12 +71,6 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
     );
   }
 
-  const [usernames, setUsernames] = useState<Record<string, string>>({});
-
-useEffect(() => {
-  if (!game) return;
-  getUsernames([game.white_id, game.black_id]).then(setUsernames).catch(() => {});
-}, [game?.white_id, game?.black_id]);
 
   const boardState = game.board_state;
   const myTurn = game.turn === playerColor && game.status === 'active' && !clock.timedOut;
