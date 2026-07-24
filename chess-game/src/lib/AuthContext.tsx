@@ -14,7 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   signUp: (email: string, password: string, username: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<string | null>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<string | null>;   
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -101,9 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   }
 
-  async function signOut() {
-    if (session?.user) appCache.invalidate(`profile:${session.user.id}`);
-    await supabase.auth.signOut();
+  async function signOut(): Promise<string | null> {
+    const userId = session?.user?.id;
+    const { error } = await supabase.auth.signOut();
+
+    if (userId) appCache.invalidate(`profile:${userId}`);
+    setProfile(null);
+
+    if (error) {
+      console.error('Sign out error:', error);
+      return extractErrorMessage(error);
+    }
+    return null;
   }
 
   return (
