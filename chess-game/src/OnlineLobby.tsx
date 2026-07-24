@@ -149,7 +149,7 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
                           {tc === 'none' ? '∞' : TIME_CONTROLS[tc].label}
                         </span>
                         <span className="lobby-tc-chip-desc">
-                          {tc === 'none' ? 'Unlimited' : TIME_CONTROLS[tc].desc}
+                          {tc === 'none' ? 'No Timer' : TIME_CONTROLS[tc].desc}
                         </span>
                       </button>
                     ))}
