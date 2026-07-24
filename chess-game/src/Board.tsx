@@ -31,11 +31,13 @@ interface Props {
   hintFrom?: [number, number] | null;
   hintTo?: [number, number] | null;   // NEW
   locked?: boolean;
+  promotionInteractive?: boolean;
 }
 
 export default function Board({
   state, onSquareClick, onPromotion, flipped, showCoordinates, showValidMoves,
   boardTheme, hintFrom, hintTo, locked,   // NEW: hintTo
+  promotionInteractive = true,
 }: Props) {
   const { board, selected, validMoves, promotionPending, turn, status, lastMove } = state;
 
@@ -217,17 +219,23 @@ export default function Board({
       {promotionPending && (
         <div className="promotion-overlay">
           <div className="promotion-modal">
-            <p>Promote pawn to:</p>
-            <div className="promotion-choices">
-              {(['queen', 'rook', 'bishop', 'knight'] as PieceType[]).map(type => (
-                <button key={type} className="promo-btn" onClick={() => onPromotion(type)}>
-                  <span className={`piece ${state.turn}`} aria-hidden="true">
-                    {pieceChar({ type, color: state.turn })}
-                  </span>
-                  <span>{type}</span>
-                </button>
-              ))}
-            </div>
+            {promotionInteractive ? (
+              <>
+                <p>Promote pawn to:</p>
+                <div className="promotion-choices">
+                  {(['queen', 'rook', 'bishop', 'knight'] as PieceType[]).map(type => (
+                    <button key={type} className="promo-btn" onClick={() => onPromotion(type)}>
+                      <span className={`piece ${state.turn}`} aria-hidden="true">
+                        {pieceChar({ type, color: state.turn })}
+                      </span>
+                      <span>{type}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p>Waiting for opponent to choose a promotion…</p>
+            )}
           </div>
         </div>
       )}
