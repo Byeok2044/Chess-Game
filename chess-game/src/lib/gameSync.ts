@@ -101,6 +101,22 @@ export async function joinGameByCode(inviteCode: string, userId: string) {
   return { data: data as GameRow | null, error };
 }
 
+export async function getUsernames(ids: (string | null | undefined)[]): Promise<Record<string, string>> {
+  const uniqueIds = [...new Set(ids.filter((id): id is string => !!id))];
+  if (uniqueIds.length === 0) return {};
+
+  const key = `usernames:${uniqueIds.slice().sort().join(',')}`;
+  return getOrFetch(key, 60000, async () => {
+    const { data, error } = await supabase.from('profiles').select('id, username').in('id', uniqueIds);
+    if (error) throw error;
+    const map: Record<string, string> = {};
+    for (const row of (data ?? []) as { id: string; username: string }[]) {
+      map[row.id] = row.username;
+    }
+    return map;
+  });
+}
+
 export async function pushMove(
   gameId: string,
   state: GameState,
@@ -161,7 +177,7 @@ export async function claimTimeout(gameId: string, timedOutColor: Color) {
     .from('games')
     .update({ status: 'finished', winner })
     .eq('id', gameId)
-    .eq('status', 'active'); // guards against both clients racing to claim it
+    .eq('status', 'active'); 
 }
 
 export async function recordResult(game: GameRow) {

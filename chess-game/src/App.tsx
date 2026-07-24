@@ -248,6 +248,34 @@ export default function App() {
   const displayState = showHints ? state : { ...state, validMoves: [] };
   const gameOver = state.status === 'checkmate' || state.status === 'stalemate' || !!clock.timedOut;
 
+const blackBar = (
+    <PlayerBar
+      key="black"
+      label={blackLabel}
+      avatarIcon="♚"
+      avatarClass={vsAI && aiColor === 'black' ? 'ai-avatar' : 'black-avatar'}
+      capturedIcons={capturedIconsFor(state.capturedByBlack, 'white')}
+      lead={blackLead}
+      thinking={vsAI && aiThinking && aiColor === 'black'}
+      timeMs={clock.hasClock ? clock.blackMs : undefined}
+      clockActive={clock.hasClock && state.turn === 'black' && !gameOver}
+    />
+  );
+
+  const whiteBar = (
+    <PlayerBar
+      key="white"
+      label={whiteLabel}
+      avatarIcon="♔"
+      avatarClass={vsAI && aiColor === 'white' ? 'ai-avatar' : 'white-avatar'}
+      capturedIcons={capturedIconsFor(state.capturedByWhite, 'black')}
+      lead={whiteLead}
+      thinking={vsAI && aiThinking && aiColor === 'white'}
+      timeMs={clock.hasClock ? clock.whiteMs : undefined}
+      clockActive={clock.hasClock && state.turn === 'white' && !gameOver}
+    />
+  );
+
   return (
     <div className="app">
       <GameHeader
@@ -274,16 +302,7 @@ export default function App() {
 
       <main className="main">
         <div className="game-layout">
-          <PlayerBar
-            label={blackLabel}
-            avatarIcon="♚"
-            avatarClass={vsAI && aiColor === 'black' ? 'ai-avatar' : 'black-avatar'}
-            capturedIcons={capturedIconsFor(state.capturedByBlack, 'white')}
-            lead={blackLead}
-            thinking={vsAI && aiThinking && aiColor === 'black'}
-            timeMs={clock.hasClock ? clock.blackMs : undefined}
-            clockActive={clock.hasClock && state.turn === 'black' && !gameOver}
-          />
+          {flipped ? whiteBar : blackBar}
 
           <Board
             state={displayState}
@@ -295,16 +314,7 @@ export default function App() {
             boardTheme={BOARD_THEMES[boardTheme]}
           />
 
-          <PlayerBar
-            label={whiteLabel}
-            avatarIcon="♔"
-            avatarClass={vsAI && aiColor === 'white' ? 'ai-avatar' : 'white-avatar'}
-            capturedIcons={capturedIconsFor(state.capturedByWhite, 'black')}
-            lead={whiteLead}
-            thinking={vsAI && aiThinking && aiColor === 'white'}
-            timeMs={clock.hasClock ? clock.whiteMs : undefined}
-            clockActive={clock.hasClock && state.turn === 'white' && !gameOver}
-          />
+          {flipped ? blackBar : whiteBar}
         </div>
 
         <aside className="side-panel">

@@ -7,12 +7,13 @@ import { legalMoves, makeMove } from './Chess.ts';
 import type { PieceType, GameState } from './Chess.ts';
 import {
   useMultiplayerGame, usePresenceAbandonment, pushMove, resignGame,
-  claimTimeout, computeMoveClocks,
+  claimTimeout, computeMoveClocks, getUsernames,
 } from './lib/gameSync.ts';
 import { useMultiplayerClock } from './hooks/useMultiplayerClock.ts';
 import { useAuth } from './lib/AuthContext.tsx';
 import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { materialScore } from './utils/Material.ts';
+
 
 interface Props {
   gameId: string;
@@ -63,6 +64,13 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
       </div>
     );
   }
+
+  const [usernames, setUsernames] = useState<Record<string, string>>({});
+
+useEffect(() => {
+  if (!game) return;
+  getUsernames([game.white_id, game.black_id]).then(setUsernames).catch(() => {});
+}, [game?.white_id, game?.black_id]);
 
   const boardState = game.board_state;
   const myTurn = game.turn === playerColor && game.status === 'active' && !clock.timedOut;
@@ -131,6 +139,13 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
   const whiteLead = scores.white - scores.black;
   const blackLead = scores.black - scores.white;
 
+  const whiteUsername = (game.white_id && usernames[game.white_id]) || 'White';
+  const blackUsername = (game.black_id && usernames[game.black_id]) || 'Black';
+  const whiteLabel = playerColor === 'white' ? `${whiteUsername} (You)` : whiteUsername;
+  const blackLabel = playerColor === 'black' ? `${blackUsername} (You)` : blackUsername;
+
+  const flipped = playerColor === 'black';
+
   const resultMessage = gameOver
     ? game.winner === 'draw'
       ? 'Draw'
@@ -138,6 +153,34 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
         ? (game.status === 'abandoned' ? 'You win · your opponent disconnected' : 'You win · your opponent resigned')
         : (game.status === 'abandoned' ? 'You lose · you disconnected' : 'You lose · you resigned')
     : null;
+
+  const blackBar = (
+    <PlayerBar
+      key="black"
+      label={blackLabel}
+      avatarIcon="♚"
+      avatarClass="black-avatar"
+      capturedIcons={capturedIconsFor(boardState.capturedByBlack, 'white')}
+      lead={blackLead}
+      thinking={false}
+      timeMs={clock.hasClock ? clock.blackMs : undefined}
+      clockActive={clock.hasClock && game.turn === 'black' && game.status === 'active'}
+    />
+  );
+
+  const whiteBar = (
+    <PlayerBar
+      key="white"
+      label={whiteLabel}
+      avatarIcon="♔"
+      avatarClass="white-avatar"
+      capturedIcons={capturedIconsFor(boardState.capturedByWhite, 'black')}
+      lead={whiteLead}
+      thinking={false}
+      timeMs={clock.hasClock ? clock.whiteMs : undefined}
+      clockActive={clock.hasClock && game.turn === 'white' && game.status === 'active'}
+    />
+  );
 
   return (
     <div className="app">
@@ -162,36 +205,18 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
 
       <main className="main">
         <div className="game-layout">
-          <PlayerBar
-            label={playerColor === 'black' ? 'You' : 'Opponent'}
-            avatarIcon="♚"
-            avatarClass="black-avatar"
-            capturedIcons={capturedIconsFor(boardState.capturedByBlack, 'white')}
-            lead={blackLead}
-            thinking={false}
-            timeMs={clock.hasClock ? clock.blackMs : undefined}
-            clockActive={clock.hasClock && game.turn === 'black' && game.status === 'active'}
-          />
+          {flipped ? whiteBar : blackBar}
 
           <Board
             state={displayState}
             onSquareClick={handleSquareClick}
             onPromotion={handlePromotion}
-            flipped={playerColor === 'black'}
+            flipped={flipped}
             showCoordinates={true}
             showValidMoves={true}
           />
 
-          <PlayerBar
-            label={playerColor === 'white' ? 'You' : 'Opponent'}
-            avatarIcon="♔"
-            avatarClass="white-avatar"
-            capturedIcons={capturedIconsFor(boardState.capturedByWhite, 'black')}
-            lead={whiteLead}
-            thinking={false}
-            timeMs={clock.hasClock ? clock.whiteMs : undefined}
-            clockActive={clock.hasClock && game.turn === 'white' && game.status === 'active'}
-          />
+          {flipped ? blackBar : whiteBar}
         </div>
 
         <aside className="side-panel">
