@@ -1,25 +1,7 @@
 :root {
-  --text: #93a68e;
-  --text-h: #ede3cc;
-  --bg: #12241c;
-  --border: #4f4634;
-  --code-bg: #203726;
-  --accent: #c9a227;
-  --accent-bg: rgba(201, 162, 39, 0.1);
-  --accent-border: rgba(201, 162, 39, 0.5);
-  --social-bg: rgba(32, 55, 38, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.35) 0 10px 15px -3px, rgba(0, 0, 0, 0.2) 0 4px 6px -2px;
-
-  --sans: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --heading: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
-
-  font: 16px/155% var(--sans);
-  letter-spacing: 0.1px;
+  font: 16px/1.55 var(--font-sans, 'IBM Plex Sans', system-ui, sans-serif);
+  letter-spacing: 0;
   color-scheme: dark;
-  color: var(--text);
-  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -45,47 +27,6 @@ body {
   margin: 0;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 600;
-  font-style: italic;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -0.5px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.1px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
