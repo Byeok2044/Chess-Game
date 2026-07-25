@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase.ts';
 import { getOrFetch, appCache } from './lib/cache.ts';
+import './Leaderboard.css';
 
 interface Row {
   id: string;
@@ -47,29 +48,43 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="promotion-overlay" style={{ position: 'fixed' }}>
-      <div className="promotion-modal" style={{ minWidth: 340, maxWidth: 480 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p>Leaderboard</p>
-          <button className="btn-ghost" onClick={handleRefresh} disabled={refreshing}>
-            {refreshing ? '…' : '↻'}
+    <div className="leaderboard-overlay" onClick={onClose}>
+      <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="leaderboard-head">
+          <span className="leaderboard-title">Leaderboard</span>
+          <button className="btn-ghost" onClick={handleRefresh} disabled={refreshing || loading}>
+            {refreshing ? '…' : '↻ Refresh'}
           </button>
         </div>
-        {loading && <span className="no-moves">Loading…</span>}
-        {!loading && rows.length === 0 && <span className="no-moves">No ranked games yet</span>}
-        {!loading && rows.length > 0 && (
-          <div className="moves-grid" style={{ maxHeight: 400 }}>
-            {rows.map((r, i) => (
-              <div key={r.id} className="move-pair" style={{ gridTemplateColumns: '24px 1fr 50px 70px' }}>
-                <span className="move-num">{i + 1}.</span>
-                <span className="move">{r.username}</span>
-                <span className="move">{r.rating}</span>
-                <span className="move">{r.wins}W {r.losses}L {r.draws}D</span>
+
+        <div className="leaderboard-rows">
+          {loading &&
+            Array.from({ length: 6 }, (_, i) => <div key={i} className="leaderboard-skeleton-row" />)}
+
+          {!loading && rows.length === 0 && (
+            <div className="leaderboard-empty">
+              No ranked games yet — play online to be the first on the board.
+            </div>
+          )}
+
+          {!loading &&
+            rows.map((r, i) => (
+              <div key={r.id} className="leaderboard-row">
+                <span className="rank-badge">{i + 1}</span>
+                <span className="leaderboard-name">{r.username}</span>
+                <span className="leaderboard-rating">{r.rating}</span>
+                <span className="leaderboard-record">
+                  {r.wins}W {r.losses}L {r.draws}D
+                </span>
               </div>
             ))}
-          </div>
-        )}
-        <button className="btn-ghost" style={{ marginTop: 16 }} onClick={onClose}>Close</button>
+        </div>
+
+        <div className="leaderboard-foot">
+          <button className="btn-ghost" style={{ width: '100%' }} onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

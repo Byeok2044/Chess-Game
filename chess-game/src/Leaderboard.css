@@ -1,0 +1,86 @@
+.leaderboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 18, 22, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: var(--space-4);
+}
+
+.leaderboard-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.leaderboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.leaderboard-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.leaderboard-rows { max-height: 420px; overflow-y: auto; }
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+
+.rank-badge { font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: center; }
+.leaderboard-row:nth-child(1) .rank-badge { color: #e0b93c; }
+.leaderboard-row:nth-child(2) .rank-badge { color: #c9c9c9; }
+.leaderboard-row:nth-child(3) .rank-badge { color: #c98a4b; }
+
+.leaderboard-name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+
+.leaderboard-rating { color: var(--accent); font-weight: 700; font-size: 13px; }
+.leaderboard-record { font-size: 11px; color: var(--text-muted); }
+
+.leaderboard-skeleton-row {
+  height: 42px;
+  margin: var(--space-2) var(--space-5);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border-soft) 37%, var(--surface2) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.leaderboard-empty {
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.leaderboard-foot { padding: var(--space-4) var(--space-5); border-top: 1px solid var(--border-soft); }
