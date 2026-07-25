@@ -24,27 +24,13 @@ export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Prop
     <div className="landing">
       <main className="hero-split">
         <div className="hero-left">
-          <h1 className="hero-title">
-            Chess,<br /><em>unhurried.</em>
-          </h1>
+          <h1 className="hero-title">Chess</h1>
 
           <div className="hero-actions">
-            <button className="hero-action primary" onClick={onPlay}>
-              <span className="hero-action-label">Play</span>
-              <span className="hero-action-arrow">→</span>
-            </button>
-            <button className="hero-action" onClick={onPuzzles}>
-              <span className="hero-action-label">Puzzles</span>
-              <span className="hero-action-arrow">→</span>
-            </button>
-            <button className="hero-action" onClick={onSettings}>
-              <span className="hero-action-label">Settings</span>
-              <span className="hero-action-arrow">→</span>
-            </button>
-            <button className="hero-action" onClick={onAbout}>
-              <span className="hero-action-label">About</span>
-              <span className="hero-action-arrow">→</span>
-            </button>
+            <button className="hero-action primary" onClick={onPlay}>Play</button>
+            <button className="hero-action" onClick={onPuzzles}>Puzzles</button>
+            <button className="hero-action" onClick={onSettings}>Settings</button>
+            <button className="hero-action" onClick={onAbout}>About</button>
           </div>
         </div>
 
