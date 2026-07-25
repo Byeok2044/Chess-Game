@@ -210,135 +210,13 @@
 .time-btn:hover { border-color: var(--accent); }
 .time-btn.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 
-
-/* ── Landing hero: asymmetric split, the concept's signature ─ */
-
-.hero-split {
-  min-height: 100vh;
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(340px, 560px) 1fr;
-  align-items: stretch;
-  background: var(--bg);
-}
-
-.hero-left {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--space-5);
-  padding: var(--space-8) clamp(var(--space-6), 6vw, 96px);
-}
-
-.hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.hero-eyebrow::before {
-  content: '';
-  width: 18px; height: 1px;
-  background: var(--accent);
-}
-
+/* Menu.css — bump the hero title */
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 7vw, 84px);
+  font-size: clamp(56px, 8vw, 104px); /* was clamp(48px, 7vw, 84px) */
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 0.95;
   color: var(--text);
   text-align: left;
-}
-.hero-title em {
-  font-style: normal;
-  color: var(--accent);
-}
-
-.hero-desc {
-  font-size: 14.5px;
-  color: var(--text-muted);
-  max-width: 42ch;
-  text-align: left;
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  width: 100%;
-  max-width: 320px;
-  margin-top: var(--space-2);
-}
-
-.hero-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
-  color: var(--text);
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition: border-color 0.15s, transform 0.12s, background 0.15s;
-}
-.hero-action:hover { border-color: var(--accent); background: var(--surface2); }
-.hero-action:active { transform: translateY(1px); }
-.hero-action.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fdf4f2;
-}
-.hero-action.primary:hover { background: var(--accent); opacity: 0.92; }
-
-.hero-action-label { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
-.hero-action-arrow { font-family: var(--font-mono); font-size: 15px; opacity: 0.6; }
-
-.hero-right {
-  position: relative;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.hero-board {
-  width: min(70%, 620px);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  transform: translateX(14%);
-  overflow: hidden;
-}
-.hero-sq { aspect-ratio: 1; position: relative; display: flex; align-items: center; justify-content: center; }
-.hero-sq.light { background: var(--light-sq); }
-.hero-sq.dark { background: var(--dark-sq); }
-.hero-sq .piece { font-size: clamp(16px, 3.2vw, 34px); line-height: 1; user-select: none; }
-.hero-sq .piece.white { color: var(--white-piece); }
-.hero-sq .piece.black { color: var(--black-piece); }
-
-@media (max-width: 980px) {
-  .hero-split { grid-template-columns: 1fr; }
-  .hero-right { min-height: 320px; border-left: none; border-top: 1px solid var(--border); order: -1; }
-  .hero-board { transform: none; width: 60%; }
-  .hero-left { padding: var(--space-6) var(--space-5); align-items: center; text-align: center; }
-  .hero-title, .hero-desc, .hero-eyebrow { text-align: center; }
-  .hero-eyebrow { justify-content: center; }
-  .hero-actions { max-width: 340px; }
 }
