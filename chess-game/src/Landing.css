@@ -28,23 +28,6 @@
   justify-content: center;
 }
 
-.hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.hero-subtitle {
-  color: var(--text-muted);
-  font-size: 16.5px;
-  line-height: 1.65;
-  max-width: 42ch;
-  margin-top: -4px;
-}
-
 .hero-board {
   width: min(85%, 620px);
   aspect-ratio: 1;
@@ -89,22 +72,19 @@
 .hero-actions {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-  max-width: 360px;
+  align-items: flex-start;
   gap: var(--space-3);
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .hero-action {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  width: 100%;
   justify-content: center;
-  gap: 10px;
-  padding: 18px 24px;
+  width: auto;
+  padding: 13px 28px;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -116,10 +96,6 @@
   background: var(--surface);
   color: var(--text);
   transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s, box-shadow 0.15s;
-}
-.hero-action-icon {
-  font-size: 18px;
-  line-height: 1;
 }
 .hero-action:hover {
   border-color: var(--accent);
@@ -134,8 +110,6 @@
   border-color: var(--accent);
   color: #1c1305;
   box-shadow: 0 2px 0 #8a6f16;
-  font-size: 15px;
-  padding: 20px 24px;
 }
 .hero-action.primary:hover {
   opacity: 0.92;
@@ -157,11 +131,8 @@
   .hero-title {
     text-align: center;
   }
-  .hero-subtitle {
-    max-width: 100%;
-  }
   .hero-actions {
-    max-width: 340px;
+    align-items: center;
   }
   .hero-right {
     order: -1;
