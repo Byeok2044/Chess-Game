@@ -1,3 +1,5 @@
+/* chess-game/src/Landing.css */
+
 .landing {
   min-height: 100vh;
   display: flex;
@@ -5,94 +7,7 @@
   background: var(--bg);
 }
 
-.landing-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.landing-logo { display: flex; align-items: center; gap: var(--space-2); }
-.landing-logo-piece { font-size: 20px; line-height: 1; color: var(--accent); }
-.landing-logo-text {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.landing-nav-links { display: flex; align-items: center; gap: var(--space-6); }
-
-.landing-nav-link {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--text-muted);
-  padding: 4px 0;
-  position: relative;
-}
-.landing-nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 1px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.2s ease;
-}
-.landing-nav-link:hover { color: var(--text); }
-.landing-nav-link:hover::after { transform: scaleX(1); }
-
-.landing-nav-link.emphasis {
-  color: var(--accent);
-}
-
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-4);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.hero-meta-item {
-  position: relative;
-  padding-right: var(--space-4);
-}
-.hero-meta-item:last-child { padding-right: 0; }
-.hero-meta-item:not(:last-child)::after {
-  content: '·';
-  position: absolute;
-  right: 2px;
-  color: var(--border);
-}
-.hero-meta-item strong {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.hero-action-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.hero-action-sub {
-  font-family: var(--font-sans);
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-.hero-action.primary .hero-action-sub {
-  color: rgba(253, 244, 242, 0.75);
-}
+/* ── Hero board — last-move highlight on the decorative squares ─ */
 
 .hero-sq.hero-sq-highlight::before {
   content: '';
@@ -106,7 +21,23 @@
   z-index: 1;
 }
 
-@media (max-width: 560px) {
-  .landing-nav-links { gap: var(--space-4); }
-  .hero-meta { justify-content: center; }
+/* ── Action buttons — override Menu.css's full-width stretch;
+   these should hug their text, not fill the column ─────────────── */
+
+.hero-actions {
+  align-items: flex-start;
+  max-width: none;
+  gap: var(--space-2);
+}
+
+.hero-action {
+  width: auto;
+  justify-content: center;
+  padding: 10px 22px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
 }
