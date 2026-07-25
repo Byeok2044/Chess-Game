@@ -73,7 +73,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 0 clamp(28px, 7vw, 96px) 0 clamp(80px, 14vw, 190px);
+  padding: 0 clamp(28px, 7vw, 96px) 0 clamp(110px, 18vw, 230px);
   max-width: 560px;
 }
 
