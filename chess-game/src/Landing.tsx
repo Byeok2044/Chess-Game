@@ -44,6 +44,7 @@ export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Prop
 
       <main className="landing-content">
         <h1 className="landing-title">Chess</h1>
+        <div className="landing-divider" aria-hidden="true" />
 
         <div className="landing-actions">
           <button className="landing-action primary" onClick={onPlay}>Play</button>
