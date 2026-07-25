@@ -22,34 +22,34 @@ const HERO_LAST_MOVE = new Set([44, 35]);
 export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Props) {
   return (
     <div className="landing">
-      <main className="hero-split">
-        <div className="hero-left">
-          <h1 className="hero-title">Chess</h1>
-
-          <div className="hero-actions">
-            <button className="hero-action primary" onClick={onPlay}>Play</button>
-            <button className="hero-action" onClick={onPuzzles}>Puzzles</button>
-            <button className="hero-action" onClick={onSettings}>Settings</button>
-            <button className="hero-action" onClick={onAbout}>About</button>
-          </div>
+      <div className="landing-board-frame" aria-hidden="true">
+        <div className="hero-board">
+          {Array.from({ length: 64 }, (_, i) => {
+            const r = Math.floor(i / 8);
+            const c = i % 8;
+            const isLight = (r + c) % 2 === 0;
+            const glyph = HERO_POSITION[i];
+            const isWhite = glyph && '♔♕♖♗♘♙'.includes(glyph);
+            const lastMove = HERO_LAST_MOVE.has(i);
+            return (
+              <div key={i} className={`hero-sq ${isLight ? 'light' : 'dark'} ${lastMove ? 'hero-sq-highlight' : ''}`}>
+                {glyph && <span className={`piece ${isWhite ? 'white' : 'black'}`}>{glyph}</span>}
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="hero-right">
-          <div className="hero-board" aria-hidden="true">
-            {Array.from({ length: 64 }, (_, i) => {
-              const r = Math.floor(i / 8);
-              const c = i % 8;
-              const isLight = (r + c) % 2 === 0;
-              const glyph = HERO_POSITION[i];
-              const isWhite = glyph && '♔♕♖♗♘♙'.includes(glyph);
-              const lastMove = HERO_LAST_MOVE.has(i);
-              return (
-                <div key={i} className={`hero-sq ${isLight ? 'light' : 'dark'} ${lastMove ? 'hero-sq-highlight' : ''}`}>
-                  {glyph && <span className={`piece ${isWhite ? 'white' : 'black'}`}>{glyph}</span>}
-                </div>
-              );
-            })}
-          </div>
+      <div className="landing-scrim" aria-hidden="true" />
+
+      <main className="landing-content">
+        <h1 className="landing-title">Chess</h1>
+
+        <div className="landing-actions">
+          <button className="landing-action primary" onClick={onPlay}>Play</button>
+          <button className="landing-action" onClick={onPuzzles}>Puzzles</button>
+          <button className="landing-action" onClick={onSettings}>Settings</button>
+          <button className="landing-action" onClick={onAbout}>About</button>
         </div>
       </main>
     </div>

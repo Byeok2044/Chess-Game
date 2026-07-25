@@ -1,35 +1,25 @@
 .landing {
+  position: relative;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
 }
 
-.hero-split {
-  display: grid;
-  grid-template-columns: minmax(360px, 480px) 1fr;
-  align-items: center;
-  min-height: 100vh;
-  gap: var(--space-8);
-  padding: 0 var(--space-8);
+/* -- The board sits like a physical object on the table: large,        -- */
+/* -- slightly turned, bleeding off the top/right edge of the viewport. -- */
+
+.landing-board-frame {
+  position: absolute;
+  top: 50%;
+  right: -6%;
+  width: min(70vw, 760px);
+  transform: translateY(-50%) rotate(-3deg);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+  animation: landing-board-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.hero-left {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
-  max-width: 440px;
-}
-
-.hero-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-board {
-  width: min(85%, 620px);
+.landing-board-frame .hero-board {
+  width: 100%;
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -39,8 +29,7 @@
   overflow: hidden;
   box-shadow:
     0 0 0 1px #241708,
-    inset 0 0 0 1px rgba(201, 162, 39, 0.35),
-    0 24px 50px rgba(0, 0, 0, 0.55);
+    inset 0 0 0 1px rgba(201, 162, 39, 0.35);
   background-image: linear-gradient(135deg, #4a3320, #3d2a1a);
 }
 
@@ -54,7 +43,7 @@
 .hero-sq.dark  { background: var(--dark-sq); }
 
 .hero-sq .piece {
-  font-size: clamp(18px, 3.6vw, 38px);
+  font-size: clamp(14px, 2.6vw, 30px);
 }
 
 .hero-sq.hero-sq-highlight::before {
@@ -69,86 +58,147 @@
   z-index: 1;
 }
 
-.hero-actions {
+.landing-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, var(--bg) 0%, var(--bg) 34%, rgba(18, 36, 28, 0.55) 52%, transparent 68%);
+  pointer-events: none;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 var(--space-8);
+  max-width: 560px;
+}
+
+.landing-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(64px, 9vw, 128px);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 var(--space-6);
+  animation: landing-rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.1s;
+}
+
+.landing-actions {
   display: grid;
   grid-template-columns: max-content;
   justify-items: stretch;
   gap: var(--space-3);
-  margin-top: var(--space-5);
+  animation: landing-rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.2s;
 }
 
-.hero-action {
+.landing-action {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 13px 28px;
+  padding: 14px 30px;
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-align: center;
   white-space: nowrap;
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-soft);
   background: var(--surface);
   color: var(--text);
-  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: border-color 0.15s, color 0.15s, transform 0.1s, padding-left 0.15s;
 }
-.hero-action:hover {
+
+/* Ledger-tab micro-interaction: a brass tab grows in from the left,   */
+/* echoing the app's index-card/ledger visual language on hover.      */
+.landing-action::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: var(--accent);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  transition: width 0.15s ease;
+}
+
+.landing-action:hover {
   border-color: var(--accent);
   color: var(--accent);
-  background: var(--accent-dim);
+  padding-left: 36px;
 }
-.hero-action:active {
+.landing-action:hover::before {
+  width: 4px;
+}
+
+.landing-action:active {
   transform: translateY(1px);
 }
-.hero-action.primary {
+
+.landing-action.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #1c1305;
   box-shadow: 0 2px 0 #8a6f16;
 }
-.hero-action.primary:hover {
+.landing-action.primary::before { display: none; }
+.landing-action.primary:hover {
+  padding-left: 30px;
   opacity: 0.92;
   color: #1c1305;
-  background: var(--accent);
+}
+
+@keyframes landing-rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes landing-board-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(4%) rotate(-3deg); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0) rotate(-3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-board-frame,
+  .landing-title,
+  .landing-actions {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
-  .hero-split {
-    grid-template-columns: 1fr;
-    padding: var(--space-6) var(--space-5);
-    gap: var(--space-6);
+  .landing-board-frame {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: min(88vw, 460px);
+    margin: var(--space-8) auto 0;
+    transform: rotate(-2deg);
   }
-  .hero-left {
+  .landing-scrim { display: none; }
+  .landing-content {
+    min-height: auto;
     align-items: center;
     text-align: center;
     max-width: 100%;
+    padding: var(--space-8) var(--space-5) 0;
   }
-  .hero-title {
-    text-align: center;
-  }
-  .hero-actions {
+  .landing-actions {
     justify-content: center;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto var(--space-8);
   }
-  .hero-right {
-    order: -1;
-  }
-  .hero-board {
-    width: min(80vw, 420px);
-  }
-}
-
-/* Menu.css — bump the hero title */
-.hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(64px, 9vw, 132px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 0.92;
-  color: var(--text);
-  text-align: left;
 }
