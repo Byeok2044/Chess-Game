@@ -24,13 +24,26 @@ export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Prop
     <div className="landing">
       <main className="hero-split">
         <div className="hero-left">
+          <span className="hero-eyebrow">Two players · one board</span>
           <h1 className="hero-title">Chess</h1>
+          <p className="hero-subtitle">
+            Play locally with a friend, challenge the computer, or invite someone
+            online. Sharpen your eye with puzzles along the way.
+          </p>
 
           <div className="hero-actions">
-            <button className="hero-action primary" onClick={onPlay}>Play</button>
-            <button className="hero-action" onClick={onPuzzles}>Puzzles</button>
-            <button className="hero-action" onClick={onSettings}>Settings</button>
-            <button className="hero-action" onClick={onAbout}>About</button>
+            <button className="hero-action primary" onClick={onPlay}>
+              <span className="hero-action-icon">♟</span> Play
+            </button>
+            <button className="hero-action" onClick={onPuzzles}>
+              <span className="hero-action-icon">♞</span> Puzzles
+            </button>
+            <button className="hero-action" onClick={onSettings}>
+              <span className="hero-action-icon">⚙</span> Settings
+            </button>
+            <button className="hero-action" onClick={onAbout}>
+              <span className="hero-action-icon">♜</span> About
+            </button>
           </div>
         </div>
 
