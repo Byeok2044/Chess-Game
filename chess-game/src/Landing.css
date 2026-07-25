@@ -1,3 +1,5 @@
+/* chess-game/src/Landing.css */
+
 .landing {
   min-height: 100vh;
   display: flex;
@@ -52,73 +54,72 @@
 .landing-nav-link:hover { color: var(--text); }
 .landing-nav-link:hover::after { transform: scaleX(1); }
 
+.landing-nav-link.emphasis {
+  color: var(--accent);
+}
 
-/* ── Hero: the board is the content, nothing else competes ──── */
 
-.landing-hero {
-  flex: 1;
+/* ── Hero meta row (quick facts under the description) ──────── */
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hero-meta-item {
+  position: relative;
+  padding-right: var(--space-4);
+}
+.hero-meta-item:last-child { padding-right: 0; }
+.hero-meta-item:not(:last-child)::after {
+  content: '·';
+  position: absolute;
+  right: 2px;
+  color: var(--border);
+}
+.hero-meta-item strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+
+/* ── Hero action list (Play / Puzzles / Customize) ───────────── */
+
+.hero-action-text {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-6);
-  padding: var(--space-6);
+  gap: 2px;
+}
+.hero-action-sub {
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.hero-action.primary .hero-action-sub {
+  color: rgba(253, 244, 242, 0.75);
 }
 
-.landing-board {
-  width: min(74vh, 560px);
-  aspect-ratio: 1;
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
+
+/* ── Hero board — last-move highlight on the decorative squares ─ */
+
+.hero-sq.hero-sq-highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(201, 162, 39, 0.22);
+  z-index: 0;
 }
-.landing-sq { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
-.landing-sq.light { background: var(--light-sq); }
-.landing-sq.dark { background: var(--dark-sq); }
-.landing-sq .piece { font-size: clamp(18px, 4.4vw, 40px); line-height: 1; user-select: none; }
-.landing-sq .piece.white { color: var(--white-piece); }
-.landing-sq .piece.black { color: var(--black-piece); }
-
-
-/* ── Compact actions, icon-led, quiet next to the board ──────── */
-
-.landing-actions {
-  display: flex;
-  gap: var(--space-3);
+.hero-sq.hero-sq-highlight .piece {
+  position: relative;
+  z-index: 1;
 }
 
-.landing-cta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 11px 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-soft);
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.1s;
-}
-.landing-cta:hover { border-color: var(--accent); background: var(--surface2); }
-.landing-cta:active { transform: translateY(1px); }
-.landing-cta-icon { font-size: 16px; line-height: 1; color: var(--accent); }
-
-.landing-cta.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fdf4f2;
-}
-.landing-cta.primary .landing-cta-icon { color: #fdf4f2; }
-.landing-cta.primary:hover { opacity: 0.92; background: var(--accent); }
 
 @media (max-width: 560px) {
   .landing-nav-links { gap: var(--space-4); }
-  .landing-actions { width: 100%; max-width: 360px; }
-  .landing-cta { flex: 1; justify-content: center; padding: 12px 8px; }
+  .hero-meta { justify-content: center; }
 }
