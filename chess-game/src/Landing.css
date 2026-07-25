@@ -70,9 +70,9 @@
 }
 
 .hero-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: max-content;
+  justify-items: stretch;
   gap: var(--space-3);
   margin-top: var(--space-5);
 }
@@ -81,7 +81,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
+  width: 100%;
   padding: 13px 28px;
   font-family: var(--font-mono);
   font-size: 13px;
@@ -132,7 +132,7 @@
     text-align: center;
   }
   .hero-actions {
-    align-items: center;
+    justify-content: center;
   }
   .hero-right {
     order: -1;
