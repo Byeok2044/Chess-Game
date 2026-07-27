@@ -32,8 +32,8 @@ export interface RatingUpdateInput {
   puzzleRating: number;
   /** Number of wrong attempts before the puzzle was solved (0 = solved first try). */
   wrongAttempts: number;
-  /** 0 = no hint, 1 = origin-square hint used, 2 = origin+destination hint used. */
-  hintsUsed: 0 | 1 | 2;
+  /** 0 = no hint; 1 = the origin-square hint was used. */
+  hintsUsed: 0 | 1;
   /** True if the user hit "Solution" and had it played out rather than solving it. */
   revealed: boolean;
 }
@@ -89,3 +89,19 @@ export function pickNextPuzzle<T extends { id: string; rating: number }>(
     return a.rating - b.rating;
   })[0];
 }
+
+/**
+ * Enforces the catalog contract from ratingBands. This prevents a short tactic
+ * from being labelled Hard merely because it has been assigned a high number.
+ */
+export function satisfiesDifficultyCriteria(puzzle: Pick<Puzzle, 'rating' | 'tier' | 'solution'>): boolean {
+  const band = bandForRating(puzzle.rating);
+  const playerMoves = Math.ceil(puzzle.solution.length / 2);
+
+  if (puzzle.tier !== band.key) return false;
+  if (puzzle.tier === 'easy') return puzzle.solution.length === 1;
+  if (puzzle.tier === 'medium') return playerMoves >= 2 && playerMoves <= 3;
+  return playerMoves >= 3 && puzzle.solution.length >= 5;
+}
+import { bandForRating } from './ratingBands.ts';
+import type { Puzzle } from './puzzleData.ts';

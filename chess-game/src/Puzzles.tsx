@@ -9,7 +9,7 @@ import {
   loadSolvedPuzzles, markPuzzleSolved,
 } from './puzzles/puzzleUtils.ts';
 import {
-  loadPuzzleRating, pickNextPuzzle, savePuzzleRating, updatePuzzleRating,
+  loadPuzzleRating, pickNextPuzzle, satisfiesDifficultyCriteria, savePuzzleRating, updatePuzzleRating,
 } from './puzzles/puzzleRating.ts';
 import { bandForRating } from './puzzles/ratingBands.ts';
 import './Menu.css';
@@ -18,16 +18,17 @@ import './App.css';
 type Feedback = 'idle' | 'correct' | 'incorrect' | 'complete';
 
 const REVEAL_AFTER_ATTEMPTS = 2;
-const REPLY_DELAY_MS = 550;
+const REPLY_DELAY_MS = 250;
 const SHAKE_DELAY_MS = 650;
+const PUZZLE_CATALOG = PUZZLES.filter(satisfiesDifficultyCriteria);
 
 export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [rating, setRating] = useState(() => loadPuzzleRating());
   const [index, setIndex] = useState(() => {
-    const next = pickNextPuzzle(PUZZLES, new Set(), loadPuzzleRating());
-    return Math.max(0, next ? PUZZLES.findIndex((p) => p.id === next.id) : 0);
+    const next = pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating());
+    return Math.max(0, next ? PUZZLE_CATALOG.findIndex((p) => p.id === next.id) : 0);
   });
-  const puzzle = PUZZLES[index];
+  const puzzle = PUZZLE_CATALOG[index];
 
   const [state, setState] = useState<GameState>(() => stateFromPuzzle(puzzle.fen));
   const [step, setStep] = useState(0);
@@ -43,12 +44,12 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [ratingDelta, setRatingDelta] = useState<number | null>(null);
 
   const goal = useMemo(() => computeGoal(puzzle), [puzzle]);
-  const solvedCount = solved.size;
+  const solvedCount = PUZZLE_CATALOG.filter((candidate) => solved.has(candidate.id)).length;
   const movesRemaining = Math.max(0, goal.playerMoveCount - movesCompleted);
   const ratingBand = bandForRating(rating);
 
   function loadPuzzle(i: number) {
-    const p = PUZZLES[i];
+    const p = PUZZLE_CATALOG[i];
     setIndex(i);
     setState(stateFromPuzzle(p.fen));
     setStep(0);
@@ -61,6 +62,16 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     setHintPresses(0);
     setRevealed(false);
     setRatingDelta(null);
+  }
+
+  function resetAttempt() {
+    setState(stateFromPuzzle(puzzle.fen));
+    setStep(0);
+    setFeedback('idle');
+    setMovesCompleted(0);
+    setLocked(false);
+    setHintFrom(null);
+    setHintTo(null);
   }
 
   function completePuzzle(wasRevealed = revealed) {
@@ -84,10 +95,10 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     }
 
     const selectionExclusions = new Set(nextSolved).add(puzzle.id);
-    const next = pickNextPuzzle(PUZZLES, selectionExclusions, result.newRating);
+    const next = pickNextPuzzle(PUZZLE_CATALOG, selectionExclusions, result.newRating);
     if (next) {
       window.setTimeout(() => {
-        const nextIndex = PUZZLES.findIndex((candidate) => candidate.id === next.id);
+        const nextIndex = PUZZLE_CATALOG.findIndex((candidate) => candidate.id === next.id);
         if (nextIndex >= 0) loadPuzzle(nextIndex);
       }, 1800);
     }
@@ -145,8 +156,9 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
           setAttempts((a) => a + 1);
           setLocked(true);
           window.setTimeout(() => {
-            setFeedback('idle');
-            setLocked(false);
+            // A broken continuation invalidates the entire calculation.
+            // Start over rather than allowing the player to retain partial progress.
+            resetAttempt();
           }, SHAKE_DELAY_MS);
         }
         return;
@@ -202,9 +214,9 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
           <span className="puzzles-eyebrow">Training room</span>
           <h1>Chess Puzzles</h1>
         </div>
-        <div className="puzzles-completion" aria-label={`Puzzle rating ${rating}; ${solvedCount} of ${PUZZLES.length} puzzles solved`}>
+        <div className="puzzles-completion" aria-label={`Puzzle rating ${rating}; ${solvedCount} of ${PUZZLE_CATALOG.length} puzzles solved`}>
           <strong>{rating}</strong>
-          <span>{ratingBand.label} · {solvedCount}/{PUZZLES.length} solved</span>
+          <span>{ratingBand.label} · {solvedCount}/{PUZZLE_CATALOG.length} solved</span>
         </div>
       </header>
 
@@ -212,7 +224,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         <section className="puzzle-stage" aria-label="Current puzzle">
           <div className="puzzle-stage-head">
             <div>
-              <p className="puzzle-position">Puzzle {index + 1} of {PUZZLES.length}</p>
+              <p className="puzzle-position">Puzzle {index + 1} of {PUZZLE_CATALOG.length}</p>
               <div className="puzzle-objective">
                 <h2 className="puzzle-goal-label">{puzzle.title}</h2>
                 <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
@@ -273,7 +285,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
                     {ratingDelta > 0 ? '+' : ''}{ratingDelta} rating points
                   </span>
                 )}
-                {solvedCount < PUZZLES.length ? (
+                {solvedCount < PUZZLE_CATALOG.length ? (
                   <span className="next-puzzle-note">Finding your next challenge…</span>
                 ) : (
                   <span>All puzzles solved</span>
@@ -287,10 +299,10 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
                   <span className="puzzles-eyebrow">Library</span>
                   <h2>Choose a puzzle</h2>
                 </div>
-                <span>{PUZZLES.length} available</span>
+                <span>{PUZZLE_CATALOG.length} available</span>
               </div>
               <div className="moves-grid">
-                {PUZZLES.map((p, i) => (
+                {PUZZLE_CATALOG.map((p, i) => (
                   <button key={p.id} className={`puzzle-list-item ${i === index ? 'active' : ''}`} onClick={() => loadPuzzle(i)} disabled={feedback === 'complete'} aria-current={i === index ? 'true' : undefined}>
                     <span className="puzzle-list-title">
                       {solved.has(p.id) && <span className="puzzle-solved-check">✓</span>}
