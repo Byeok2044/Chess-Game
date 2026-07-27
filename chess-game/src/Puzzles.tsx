@@ -296,7 +296,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
               </div>
               <div className="moves-grid">
                 {PUZZLE_CATALOG.map((p, i) => (
-                  <button key={p.id} className={`puzzle-list-item ${i === index ? 'active' : ''}`} onClick={() => loadPuzzle(i)} disabled={feedback === 'complete'} aria-current={i === index ? 'true' : undefined}>
+                  <button key={p.id} className={`puzzle-list-item ${i === index ? 'active' : ''}`} onClick={() => loadPuzzle(i)} aria-current={i === index ? 'true' : undefined}>
                     <span className="puzzle-list-title">
                       {solved.has(p.id) && <span className="puzzle-solved-check">✓</span>}
                       <span className="puzzle-list-number">{String(i + 1).padStart(2, '0')}</span>
