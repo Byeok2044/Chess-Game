@@ -24,9 +24,6 @@ const PUZZLE_CATALOG = PUZZLES.filter(satisfiesDifficultyCriteria);
 
 export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [rating, setRating] = useState(() => loadPuzzleRating());
-  const [allSolved, setAllSolved] = useState(() =>
-    pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating()) === null
-  );
   const [index, setIndex] = useState(() => {
     const next = pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating());
     return Math.max(0, next ? PUZZLE_CATALOG.findIndex((p) => p.id === next.id) : 0);
@@ -51,36 +48,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const movesRemaining = Math.max(0, goal.playerMoveCount - movesCompleted);
   const ratingBand = bandForRating(rating);
 
-  if (allSolved) {
-    return (
-      <div className="puzzles-page">
-        <header className="puzzles-header">
-          <button className="btn-ghost puzzles-back" onClick={onBack}>← Home</button>
-          <div className="puzzles-heading"><span className="puzzles-eyebrow">Training room</span><h1>Chess Puzzles</h1></div>
-          <div className="puzzles-completion"><strong>{rating}</strong><span>{ratingBand.label} · complete</span></div>
-        </header>
-        <main className="puzzles-layout">
-          <section className="puzzle-all-solved">
-            <span aria-hidden="true">♛</span>
-            <p className="puzzles-eyebrow">Collection complete</p>
-            <h2>All puzzles solved</h2>
-            <p>You have completed all {PUZZLE_CATALOG.length} available puzzles. New puzzles will appear here when added.</p>
-            <div className="puzzle-completed-list" aria-label="Review solved puzzles">
-              {PUZZLE_CATALOG.map((completedPuzzle, completedIndex) => (
-                <button key={completedPuzzle.id} className="btn-ghost" onClick={() => loadPuzzle(completedIndex)}>
-                  Review {completedIndex + 1}: {completedPuzzle.title}
-                </button>
-              ))}
-            </div>
-          </section>
-        </main>
-      </div>
-    );
-  }
-
   function loadPuzzle(i: number) {
     const p = PUZZLE_CATALOG[i];
-    setAllSolved(false);
     setIndex(i);
     setState(stateFromPuzzle(p.fen));
     setStep(0);
@@ -137,8 +106,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         const nextIndex = PUZZLE_CATALOG.findIndex((candidate) => candidate.id === next.id);
         if (nextIndex >= 0) loadPuzzle(nextIndex);
       }, 1800);
-    } else if (PUZZLE_CATALOG.every((candidate) => nextSolved.has(candidate.id))) {
-      window.setTimeout(() => setAllSolved(true), 1200);
     }
   }
 
