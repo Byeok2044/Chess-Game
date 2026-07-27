@@ -938,6 +938,14 @@ button, input { font-family: inherit; }
 .puzzle-all-solved h2 { font-family: var(--font-display); font-size: 30px; font-style: italic; }
 .puzzle-all-solved p:not(.puzzles-eyebrow) { max-width: 36ch; color: var(--text-muted); }
 .puzzle-all-solved .btn-primary { width: auto; margin-top: var(--space-2); }
+.puzzle-completed-list {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.puzzle-completed-list .btn-ghost { overflow: hidden; text-overflow: ellipsis; }
 
 .puzzle-stage { width: min(100%, 610px); justify-self: center; }
 .puzzle-stage-head {
@@ -1042,4 +1050,5 @@ button, input { font-family: inherit; }
   .puzzle-stage-head { align-items: flex-start; flex-direction: column; }
   .puzzle-themes { justify-content: flex-start; }
   .puzzle-actions .btn-ghost { flex: 1; min-width: 0; }
+  .puzzle-completed-list { grid-template-columns: 1fr; }
 }

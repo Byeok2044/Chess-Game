@@ -65,7 +65,13 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             <p className="puzzles-eyebrow">Collection complete</p>
             <h2>All puzzles solved</h2>
             <p>You have completed all {PUZZLE_CATALOG.length} available puzzles. New puzzles will appear here when added.</p>
-            <button className="btn-primary" onClick={onBack}>Return home</button>
+            <div className="puzzle-completed-list" aria-label="Review solved puzzles">
+              {PUZZLE_CATALOG.map((completedPuzzle, completedIndex) => (
+                <button key={completedPuzzle.id} className="btn-ghost" onClick={() => loadPuzzle(completedIndex)}>
+                  Review {completedIndex + 1}: {completedPuzzle.title}
+                </button>
+              ))}
+            </div>
           </section>
         </main>
       </div>
@@ -74,6 +80,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
 
   function loadPuzzle(i: number) {
     const p = PUZZLE_CATALOG[i];
+    setAllSolved(false);
     setIndex(i);
     setState(stateFromPuzzle(p.fen));
     setStep(0);
