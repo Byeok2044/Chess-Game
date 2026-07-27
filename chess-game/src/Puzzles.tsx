@@ -280,7 +280,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" role="alert">Incorrect</div>}
             {feedback === 'complete' && (
               <div className="puzzle-feedback-card complete">
-                <strong aria-label="Puzzle complete">✓</strong>
+                <strong>Puzzle complete</strong>
                 {ratingDelta !== null && (
                   <span className={ratingDelta > 0 ? 'rating-gain' : 'rating-loss'}>
                     {ratingDelta > 0 ? '+' : ''}{ratingDelta}
