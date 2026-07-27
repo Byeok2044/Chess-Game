@@ -276,8 +276,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         </section>
 
         <aside className="puzzles-sidebar">
-            {feedback === 'correct' && <div className="puzzle-feedback-card correct" role="status" aria-label="Correct">✓</div>}
-            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" role="alert" aria-label="Incorrect">×</div>}
+            {feedback === 'correct' && <div className="puzzle-feedback-card correct" role="status">Correct</div>}
+            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" role="alert">Incorrect</div>}
             {feedback === 'complete' && (
               <div className="puzzle-feedback-card complete">
                 <strong aria-label="Puzzle complete">✓</strong>
