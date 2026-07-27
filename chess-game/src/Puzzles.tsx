@@ -34,6 +34,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [solved, setSolved] = useState<Set<string>>(() => loadSolvedPuzzles());
 
   const goal = useMemo(() => computeGoal(puzzle), [puzzle]);
+  const solvedCount = solved.size;
 
   function loadPuzzle(i: number) {
     const p = PUZZLES[i];
@@ -165,29 +166,48 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="menu-root" style={{ alignItems: 'flex-start', paddingTop: 24 }}>
-      <div className="menu-content" style={{ maxWidth: 960 }}>
-        <button className="btn-ghost" onClick={onBack}>← Back</button>
+    <div className="puzzles-page">
+      <header className="puzzles-header">
+        <button className="btn-ghost puzzles-back" onClick={onBack}>← Home</button>
+        <div className="puzzles-heading">
+          <span className="puzzles-eyebrow">Training room</span>
+          <h1>Chess Puzzles</h1>
+        </div>
+        <div className="puzzles-completion" aria-label={`${solvedCount} of ${PUZZLES.length} puzzles solved`}>
+          <strong>{solvedCount}<span>/{PUZZLES.length}</span></strong>
+          <span>Solved</span>
+        </div>
+      </header>
 
-        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
-          <div>
-            <div className="puzzle-objective">
-              <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
-              <h2 className="puzzle-goal-label">{goal.label}</h2>
+      <main className="puzzles-layout">
+        <section className="puzzle-stage" aria-label="Current puzzle">
+          <div className="puzzle-stage-head">
+            <div>
+              <p className="puzzle-position">Puzzle {index + 1} of {PUZZLES.length}</p>
+              <div className="puzzle-objective">
+                <h2 className="puzzle-goal-label">{puzzle.title}</h2>
+                <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
+              </div>
+              <p className="puzzle-subline">{goal.label} · {goal.playerMoveCount} move{goal.playerMoveCount === 1 ? '' : 's'}</p>
             </div>
+            <div className="puzzle-themes" aria-label="Puzzle themes">
+              {puzzle.themes.map((theme) => <span key={theme}>{theme}</span>)}
+            </div>
+          </div>
 
-            <div className="puzzle-progress">
-              {Array.from({ length: goal.playerMoveCount }, (_, i) => (
-                <span
-                  key={i}
-                  className={[
-                    'puzzle-dot',
-                    i < movesCompleted ? 'filled' : '',
-                    i === movesCompleted && feedback !== 'complete' ? 'current' : '',
-                  ].join(' ')}
-                />
-              ))}
-            </div>
+          <div className="puzzle-progress" aria-label={`${movesCompleted} of ${goal.playerMoveCount} moves completed`}>
+            {Array.from({ length: goal.playerMoveCount }, (_, i) => (
+              <span
+                key={i}
+                className={[
+                  'puzzle-dot',
+                  i < movesCompleted ? 'filled' : '',
+                  i === movesCompleted && feedback !== 'complete' ? 'current' : '',
+                ].join(' ')}
+              />
+            ))}
+            <span className="puzzle-progress-text">{movesCompleted}/{goal.playerMoveCount} moves</span>
+          </div>
 
             <div className={feedback === 'incorrect' ? 'shake' : undefined}>
               <Board
@@ -204,19 +224,21 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             </div>
 
             <div className="puzzle-actions">
-              <button className="btn-ghost" onClick={handleHint} disabled={locked || feedback === 'complete'}>Hint</button>
-              <button className="btn-ghost" onClick={() => loadPuzzle(index)} disabled={locked}>Retry</button>
+              <button className="btn-ghost" onClick={handleHint} disabled={locked || feedback === 'complete'}>♟ Hint</button>
+              <button className="btn-ghost" onClick={() => loadPuzzle(index)} disabled={locked}>↻ Retry</button>
               {attempts >= REVEAL_AFTER_ATTEMPTS && feedback !== 'complete' && (
-                <button className="btn-ghost" onClick={handleRevealSolution} disabled={locked}>Solution</button>
+                <button className="btn-ghost" onClick={handleRevealSolution} disabled={locked}>Show solution</button>
               )}
             </div>
-          </div>
+        </section>
 
-          <aside className="side-panel" style={{ width: 280, position: 'static' }}>
-            {feedback === 'correct' && <div className="puzzle-feedback-card correct" />}
-            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" />}
+        <aside className="puzzles-sidebar">
+            {feedback === 'correct' && <div className="puzzle-feedback-card correct">Correct — preparing the response…</div>}
+            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect">Not quite. Look for the strongest forcing move.</div>}
             {feedback === 'complete' && (
               <div className="puzzle-feedback-card complete">
+                <span className="feedback-kicker">Puzzle complete</span>
+                <strong>Well played.</strong>
                 {index + 1 < PUZZLES.length ? (
                   <button className="btn-primary" onClick={() => loadPuzzle(index + 1)}>Next puzzle</button>
                 ) : (
@@ -225,12 +247,20 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
               </div>
             )}
 
-            <div className="move-history">
+            <div className="puzzle-library">
+              <div className="puzzle-library-head">
+                <div>
+                  <span className="puzzles-eyebrow">Library</span>
+                  <h2>Choose a puzzle</h2>
+                </div>
+                <span>{PUZZLES.length} available</span>
+              </div>
               <div className="moves-grid">
                 {PUZZLES.map((p, i) => (
-                  <button key={p.id} className="btn-ghost puzzle-list-item" onClick={() => loadPuzzle(i)}>
+                  <button key={p.id} className={`puzzle-list-item ${i === index ? 'active' : ''}`} onClick={() => loadPuzzle(i)} aria-current={i === index ? 'true' : undefined}>
                     <span className="puzzle-list-title">
                       {solved.has(p.id) && <span className="puzzle-solved-check">✓</span>}
+                      <span className="puzzle-list-number">{String(i + 1).padStart(2, '0')}</span>
                       {p.title}
                     </span>
                     <span className={`puzzle-badge ${difficultyBadge(p.rating)}`}>{p.rating}</span>
@@ -238,9 +268,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
                 ))}
               </div>
             </div>
-          </aside>
-        </div>
-      </div>
+        </aside>
+      </main>
     </div>
   );
 }
