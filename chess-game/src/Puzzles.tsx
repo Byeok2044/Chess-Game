@@ -9,7 +9,7 @@ import {
   loadSolvedPuzzles, markPuzzleSolved,
 } from './puzzles/puzzleUtils.ts';
 import {
-  loadPuzzleRating, pickNextPuzzle, satisfiesDifficultyCriteria, savePuzzleRating, updatePuzzleRating,
+  loadPuzzleRating, pickNextPuzzle, satisfiesDifficultyCriteria,
 } from './puzzles/puzzleRating.ts';
 import { bandForRating } from './puzzles/ratingBands.ts';
 import './Menu.css';
@@ -23,7 +23,7 @@ const SHAKE_DELAY_MS = 650;
 const PUZZLE_CATALOG = PUZZLES.filter(satisfiesDifficultyCriteria);
 
 export default function Puzzles({ onBack }: { onBack: () => void }) {
-  const [rating, setRating] = useState(() => loadPuzzleRating());
+  const [rating] = useState(() => loadPuzzleRating());
   const [index, setIndex] = useState(() => {
     const next = pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating());
     return Math.max(0, next ? PUZZLE_CATALOG.findIndex((p) => p.id === next.id) : 0);
@@ -38,10 +38,8 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [locked, setLocked] = useState(false);
   const [hintFrom, setHintFrom] = useState<[number, number] | null>(null);
   const [hintTo, setHintTo] = useState<[number, number] | null>(null);
-  const [hintPresses, setHintPresses] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [solved, setSolved] = useState<Set<string>>(() => loadSolvedPuzzles());
-  const [ratingDelta, setRatingDelta] = useState<number | null>(null);
 
   const goal = useMemo(() => computeGoal(puzzle), [puzzle]);
   const solvedCount = PUZZLE_CATALOG.filter((candidate) => solved.has(candidate.id)).length;
@@ -58,9 +56,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     setLocked(false);
     setHintFrom(null);
     setHintTo(null);
-    setHintPresses(0);
     setRevealed(false);
-    setRatingDelta(null);
   }
 
   function resetAttempt() {
@@ -77,29 +73,14 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     setFeedback('complete');
     const nextSolved = new Set(solved);
     const isNewSolve = !wasRevealed && !nextSolved.has(puzzle.id);
-    let nextRating = rating;
 
     if (isNewSolve) {
-      const result = updatePuzzleRating({
-        currentRating: rating,
-        puzzleRating: puzzle.rating,
-        wrongAttempts: attempts,
-        hintsUsed: hintPresses > 0 ? 1 : 0,
-        revealed: false,
-      });
-      setRating(result.newRating);
-      nextRating = result.newRating;
-      setRatingDelta(result.delta);
-      savePuzzleRating(result.newRating);
       markPuzzleSolved(puzzle.id);
       nextSolved.add(puzzle.id);
       setSolved(nextSolved);
-    } else {
-      // Replays and revealed lines are useful for practice, but never farm rating.
-      setRatingDelta(0);
     }
 
-    const next = pickNextPuzzle(PUZZLE_CATALOG, nextSolved, nextRating);
+    const next = pickNextPuzzle(PUZZLE_CATALOG, nextSolved, rating);
     if (next) {
       window.setTimeout(() => {
         const nextIndex = PUZZLE_CATALOG.findIndex((candidate) => candidate.id === next.id);
@@ -113,7 +94,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     const { from } = fromUCI(puzzle.solution[step]);
     setHintFrom(from);
     setHintTo(null);
-    setHintPresses(1);
   }
 
   function handleSquareClick(r: number, c: number) {
@@ -281,11 +261,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
             {feedback === 'complete' && (
               <div className="puzzle-feedback-card complete">
                 <strong>Puzzle complete</strong>
-                {ratingDelta !== null && (
-                  <span className={ratingDelta > 0 ? 'rating-gain' : 'rating-loss'}>
-                    {ratingDelta > 0 ? '+' : ''}{ratingDelta}
-                  </span>
-                )}
               </div>
             )}
 
