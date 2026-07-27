@@ -919,6 +919,26 @@ button, input { font-family: inherit; }
   padding: clamp(24px, 4vw, 48px) var(--space-6);
 }
 
+.puzzle-all-solved {
+  grid-column: 1 / -1;
+  width: min(100%, 520px);
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: clamp(32px, 6vw, 56px);
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+}
+.puzzle-all-solved > span { color: var(--accent); font-size: 48px; line-height: 1; }
+.puzzle-all-solved h2 { font-family: var(--font-display); font-size: 30px; font-style: italic; }
+.puzzle-all-solved p:not(.puzzles-eyebrow) { max-width: 36ch; color: var(--text-muted); }
+.puzzle-all-solved .btn-primary { width: auto; margin-top: var(--space-2); }
+
 .puzzle-stage { width: min(100%, 610px); justify-self: center; }
 .puzzle-stage-head {
   display: flex;

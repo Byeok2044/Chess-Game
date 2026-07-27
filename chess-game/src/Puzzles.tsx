@@ -24,6 +24,9 @@ const PUZZLE_CATALOG = PUZZLES.filter(satisfiesDifficultyCriteria);
 
 export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [rating, setRating] = useState(() => loadPuzzleRating());
+  const [allSolved, setAllSolved] = useState(() =>
+    pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating()) === null
+  );
   const [index, setIndex] = useState(() => {
     const next = pickNextPuzzle(PUZZLE_CATALOG, loadSolvedPuzzles(), loadPuzzleRating());
     return Math.max(0, next ? PUZZLE_CATALOG.findIndex((p) => p.id === next.id) : 0);
@@ -47,6 +50,27 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const solvedCount = PUZZLE_CATALOG.filter((candidate) => solved.has(candidate.id)).length;
   const movesRemaining = Math.max(0, goal.playerMoveCount - movesCompleted);
   const ratingBand = bandForRating(rating);
+
+  if (allSolved) {
+    return (
+      <div className="puzzles-page">
+        <header className="puzzles-header">
+          <button className="btn-ghost puzzles-back" onClick={onBack}>← Home</button>
+          <div className="puzzles-heading"><span className="puzzles-eyebrow">Training room</span><h1>Chess Puzzles</h1></div>
+          <div className="puzzles-completion"><strong>{rating}</strong><span>{ratingBand.label} · complete</span></div>
+        </header>
+        <main className="puzzles-layout">
+          <section className="puzzle-all-solved">
+            <span aria-hidden="true">♛</span>
+            <p className="puzzles-eyebrow">Collection complete</p>
+            <h2>All puzzles solved</h2>
+            <p>You have completed all {PUZZLE_CATALOG.length} available puzzles. New puzzles will appear here when added.</p>
+            <button className="btn-primary" onClick={onBack}>Return home</button>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   function loadPuzzle(i: number) {
     const p = PUZZLE_CATALOG[i];
@@ -76,31 +100,38 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
 
   function completePuzzle(wasRevealed = revealed) {
     setFeedback('complete');
-    const result = updatePuzzleRating({
-      currentRating: rating,
-      puzzleRating: puzzle.rating,
-      wrongAttempts: attempts,
-      hintsUsed: hintPresses > 0 ? 1 : 0,
-      revealed: wasRevealed,
-    });
-    setRating(result.newRating);
-    setRatingDelta(result.delta);
-    savePuzzleRating(result.newRating);
-
     const nextSolved = new Set(solved);
-    if (!wasRevealed) {
+    const isNewSolve = !wasRevealed && !nextSolved.has(puzzle.id);
+    let nextRating = rating;
+
+    if (isNewSolve) {
+      const result = updatePuzzleRating({
+        currentRating: rating,
+        puzzleRating: puzzle.rating,
+        wrongAttempts: attempts,
+        hintsUsed: hintPresses > 0 ? 1 : 0,
+        revealed: false,
+      });
+      setRating(result.newRating);
+      nextRating = result.newRating;
+      setRatingDelta(result.delta);
+      savePuzzleRating(result.newRating);
       markPuzzleSolved(puzzle.id);
       nextSolved.add(puzzle.id);
       setSolved(nextSolved);
+    } else {
+      // Replays and revealed lines are useful for practice, but never farm rating.
+      setRatingDelta(0);
     }
 
-    const selectionExclusions = new Set(nextSolved).add(puzzle.id);
-    const next = pickNextPuzzle(PUZZLE_CATALOG, selectionExclusions, result.newRating);
+    const next = pickNextPuzzle(PUZZLE_CATALOG, nextSolved, nextRating);
     if (next) {
       window.setTimeout(() => {
         const nextIndex = PUZZLE_CATALOG.findIndex((candidate) => candidate.id === next.id);
         if (nextIndex >= 0) loadPuzzle(nextIndex);
       }, 1800);
+    } else if (PUZZLE_CATALOG.every((candidate) => nextSolved.has(candidate.id))) {
+      window.setTimeout(() => setAllSolved(true), 1200);
     }
   }
 
