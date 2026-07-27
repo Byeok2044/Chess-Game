@@ -865,19 +865,6 @@ button, input { font-family: inherit; }
     var(--bg);
 }
 
-.puzzles-header {
-  min-height: 86px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) max(var(--space-6), calc((100vw - 1180px) / 2));
-  border-bottom: 1px solid var(--border-soft);
-  background: rgba(24, 43, 33, 0.88);
-  backdrop-filter: blur(14px);
-}
-
-.puzzles-back { justify-self: start; }
 .icon-button {
   width: 34px;
   min-width: 34px !important;
@@ -887,13 +874,6 @@ button, input { font-family: inherit; }
   place-items: center;
   font-size: 17px;
   line-height: 1;
-}
-.puzzles-heading { text-align: left; }
-.puzzles-heading h1 {
-  font-family: var(--font-display);
-  font-size: clamp(23px, 3vw, 30px);
-  font-style: italic;
-  line-height: 1.05;
 }
 .puzzles-eyebrow,
 .puzzle-position,
@@ -907,18 +887,6 @@ button, input { font-family: inherit; }
   text-transform: uppercase;
 }
 
-.puzzles-completion {
-  justify-self: end;
-  min-width: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  line-height: 1.1;
-}
-.puzzles-completion strong { color: var(--accent); font-family: var(--font-mono); font-size: 18px; }
-.puzzles-completion strong span { color: var(--text-muted); font-size: 12px; font-weight: 500; }
-.puzzles-completion > span { color: var(--text-muted); font-size: 11px; margin-top: 3px; }
-
 .puzzles-layout {
   width: min(1180px, 100%);
   margin: 0 auto;
@@ -926,11 +894,12 @@ button, input { font-family: inherit; }
   grid-template-columns: minmax(0, 1fr) 310px;
   align-items: start;
   gap: clamp(24px, 4vw, 52px);
-  padding: clamp(24px, 4vw, 48px) var(--space-6);
+  padding: clamp(28px, 5vw, 56px) var(--space-6);
 }
 
 
-.puzzle-stage { width: min(100%, 610px); justify-self: center; }
+.puzzle-stage { width: min(100%, 610px); justify-self: center; display: flex; flex-direction: column; }
+.puzzle-back-link { align-self: flex-start; margin-bottom: var(--space-5); }
 .puzzle-stage-head {
   display: flex;
   justify-content: space-between;
@@ -1036,9 +1005,6 @@ button, input { font-family: inherit; }
 }
 
 @media (max-width: 560px) {
-  .puzzles-header { grid-template-columns: 1fr auto; padding: var(--space-3) var(--space-4); }
-  .puzzles-heading { display: none; }
-  .puzzles-completion { min-width: auto; }
   .puzzles-layout { padding: var(--space-5) var(--space-4); }
   .puzzle-stage-head { align-items: flex-start; flex-direction: column; }
   .puzzle-themes { justify-content: flex-start; }

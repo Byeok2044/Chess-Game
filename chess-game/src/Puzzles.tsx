@@ -192,15 +192,9 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="puzzles-page">
-      <header className="puzzles-header">
-        <button className="btn-ghost puzzles-back" onClick={onBack}>← Back</button>
-        <div className="puzzles-heading">
-          <h1>Puzzles</h1>
-        </div>
-      </header>
-
       <main className="puzzles-layout">
         <section className="puzzle-stage" aria-label="Current puzzle">
+          <button className="btn-ghost puzzle-back-link" onClick={onBack}>← Back</button>
           <div className="puzzle-stage-head">
             <div>
               <div className="puzzle-objective">
