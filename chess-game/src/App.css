@@ -977,9 +977,16 @@ button, input { font-family: inherit; }
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
 }
 .puzzle-feedback-card.correct,
-.puzzle-feedback-card.incorrect { font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.puzzle-feedback-card.incorrect,
+.puzzle-feedback-card.complete strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .puzzle-feedback-card.complete { grid-template-columns: auto auto; column-gap: var(--space-2); }
-.puzzle-feedback-card strong { font-family: var(--font-mono); font-size: 28px; font-style: normal; line-height: 1; }
+.puzzle-feedback-card strong { font-style: normal; line-height: 1; }
 .puzzle-feedback-card .btn-primary { margin-top: var(--space-2); }
 .feedback-kicker { color: inherit; opacity: 0.82; }
 .rating-gain, .rating-loss { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
