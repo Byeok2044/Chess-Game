@@ -731,6 +731,9 @@ button, input { font-family: inherit; }
 .puzzle-badge.easy   { background: rgba(76, 175, 80, 0.14);  color: #7cc47f; border-color: rgba(76, 175, 80, 0.35); }
 .puzzle-badge.medium { background: var(--accent-dim);        color: var(--accent);  border-color: var(--accent-border, var(--accent)); }
 .puzzle-badge.hard   { background: var(--accent2-dim);       color: var(--accent2); border-color: var(--accent2); }
+.puzzle-badge.beginner { background: rgba(76, 175, 80, 0.14); color: #7cc47f; border-color: rgba(76, 175, 80, 0.35); }
+.puzzle-badge.intermediate { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.puzzle-badge.advanced { background: var(--accent2-dim); color: #e07a63; border-color: var(--accent2); }
 
 .puzzle-progress {
   display: flex;
@@ -942,6 +945,9 @@ button, input { font-family: inherit; }
 
 .puzzle-progress { align-items: center; min-height: 38px; margin: var(--space-3) 0 var(--space-4); }
 .puzzle-progress-text { margin-left: 5px; color: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; }
+.puzzle-board-shell { border-radius: var(--radius-sm); transition: box-shadow 0.2s ease, transform 0.2s ease; }
+.puzzle-board-shell.feedback-correct { box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.52), 0 0 32px rgba(76, 175, 80, 0.22); }
+.puzzle-board-shell.feedback-incorrect { box-shadow: 0 0 0 4px rgba(162, 64, 47, 0.58), 0 0 32px rgba(162, 64, 47, 0.2); }
 .puzzle-actions { margin-top: var(--space-4); }
 .puzzle-actions .btn-ghost { min-width: 90px; }
 .btn-ghost:disabled { cursor: not-allowed; opacity: 0.45; }
@@ -962,6 +968,10 @@ button, input { font-family: inherit; }
 .puzzle-feedback-card strong { font-family: var(--font-display); font-size: 20px; font-style: italic; }
 .puzzle-feedback-card .btn-primary { margin-top: var(--space-2); }
 .feedback-kicker { color: inherit; opacity: 0.82; }
+.rating-gain, .rating-loss { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.rating-gain { color: #96d89a; }
+.rating-loss { color: #e07a63; }
+.next-puzzle-note { color: var(--text-muted); font-size: 12px; }
 
 .puzzle-library {
   padding: var(--space-4);

@@ -39,8 +39,13 @@ export interface PuzzleGoal {
   playerMoveCount: number;
 }
 
+/** The puzzle line alternates player and opponent plies, beginning with the player. */
+export function playerMovesInPuzzle(puzzle: Puzzle): number {
+  return Math.ceil(puzzle.solution.length / 2);
+}
+
 export function computeGoal(puzzle: Puzzle): PuzzleGoal {
-  const playerMoveCount = Math.ceil(puzzle.solution.length / 2);
+  const playerMoveCount = playerMovesInPuzzle(puzzle);
   let state = stateFromPuzzle(puzzle.fen);
   let bestCaptureValue = 0;
   let bestCaptureType: string | null = null;

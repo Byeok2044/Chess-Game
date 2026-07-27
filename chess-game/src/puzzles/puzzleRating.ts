@@ -1,7 +1,7 @@
-export const DEFAULT_PUZZLE_RATING = 1200;
-const K_FACTOR = 24;           // mid of the requested 20–32 range
+export const DEFAULT_PUZZLE_RATING = 900;
+const K_FACTOR = 28;
 const RATING_FLOOR = 400;      // keep ratings from spiraling to unusable lows
-const NEXT_PUZZLE_WINDOW = 150;
+const NEXT_PUZZLE_WINDOW = 175;
 
 const RATING_KEY = 'chess-puzzle-rating';
 
@@ -51,14 +51,16 @@ export function updatePuzzleRating({
   hintsUsed,
   revealed,
 }: RatingUpdateInput): RatingUpdateResult {
+  // A revealed puzzle is intentionally treated as a loss. A solved puzzle
+  // always earns some credit, but errors and hints dampen the gain.
   const actualScore = revealed ? 0 : 1;
   const expected = expectedScore(currentRating, puzzleRating);
   let delta = K_FACTOR * (actualScore - expected);
 
   if (!revealed) {
-    if (hintsUsed === 2) delta *= 0;       
-    else if (hintsUsed === 1) delta *= 0.5; 
-    if (wrongAttempts > 0) delta *= 0.5;    
+    if (hintsUsed >= 1) delta *= 0.45;
+    if (wrongAttempts === 1) delta *= 0.7;
+    else if (wrongAttempts > 1) delta *= 0.4;
   }
 
   delta = Math.round(delta);
@@ -78,7 +80,12 @@ export function pickNextPuzzle<T extends { id: string; rating: number }>(
   const inWindow = unsolved.filter((p) => Math.abs(p.rating - currentRating) <= windowSize);
   const pool = inWindow.length > 0 ? inWindow : unsolved;
 
-  return pool.reduce((closest, p) =>
-    Math.abs(p.rating - currentRating) < Math.abs(closest.rating - currentRating) ? p : closest
-  );
+  // Prefer the closest puzzle at or just above the player's rating. This
+  // keeps the curve aspirational without repeatedly jumping to a lower tier.
+  return [...pool].sort((a, b) => {
+    const aDistance = Math.abs(a.rating - currentRating);
+    const bDistance = Math.abs(b.rating - currentRating);
+    if (aDistance !== bDistance) return aDistance - bDistance;
+    return a.rating - b.rating;
+  })[0];
 }
