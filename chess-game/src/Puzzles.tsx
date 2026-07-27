@@ -216,7 +216,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   return (
     <div className="puzzles-page">
       <header className="puzzles-header">
-        <button className="btn-ghost puzzles-back icon-button" onClick={onBack} aria-label="Back">←</button>
+        <button className="btn-ghost puzzles-back" onClick={onBack}>← Back</button>
         <div className="puzzles-heading">
           <h1>Puzzles</h1>
         </div>
