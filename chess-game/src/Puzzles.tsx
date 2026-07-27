@@ -11,7 +11,6 @@ import {
 import {
   loadPuzzleRating, pickNextPuzzle, satisfiesDifficultyCriteria,
 } from './puzzles/puzzleRating.ts';
-import { bandForRating } from './puzzles/ratingBands.ts';
 import './Menu.css';
 import './App.css';
 
@@ -42,8 +41,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
   const [solved, setSolved] = useState<Set<string>>(() => loadSolvedPuzzles());
 
   const goal = useMemo(() => computeGoal(puzzle), [puzzle]);
-  const solvedCount = PUZZLE_CATALOG.filter((candidate) => solved.has(candidate.id)).length;
-  const ratingBand = bandForRating(rating);
 
   function loadPuzzle(i: number) {
     const p = PUZZLE_CATALOG[i];
@@ -199,10 +196,6 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         <button className="btn-ghost puzzles-back" onClick={onBack}>← Back</button>
         <div className="puzzles-heading">
           <h1>Puzzles</h1>
-        </div>
-        <div className="puzzles-completion" aria-label={`Puzzle rating ${rating}; ${solvedCount} of ${PUZZLE_CATALOG.length} puzzles solved`}>
-          <strong>{rating}</strong>
-          <span>{ratingBand.label} · {solvedCount}/{PUZZLE_CATALOG.length}</span>
         </div>
       </header>
 
