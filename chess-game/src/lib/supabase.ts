@@ -48,6 +48,7 @@ export interface SavedGameRow {
   mode: 'two-player' | 'vs-ai';
   ai_color: 'white' | 'black' | null;
   difficulty: 'easy' | 'medium' | 'hard';
+  time_control: TimeControl;   // NEW
   board_state: GameState;
   updated_at: string;
 }

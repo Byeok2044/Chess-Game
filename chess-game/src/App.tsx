@@ -31,6 +31,7 @@ interface ResumableGame {
   mode: 'two-player' | 'vs-ai';
   aiColor: 'white' | 'black' | null;
   difficulty: Difficulty;
+  timeControl: TimeControl;
   state: GameState;
 }
 
@@ -43,7 +44,7 @@ export default function App() {
   const savedGameIdRef = useRef<string | undefined>(undefined);
 
   const {
-    vsAI, playerColor, state, flipped, difficulty,
+    vsAI, playerColor, state, flipped, difficulty, timeControl,
     showHints, showCoords, showSettings, boardTheme, aiThinking, clock,
     soundEnabled, setSoundEnabled,
     setShowHints, setShowCoords, setShowSettings, setFlipped, setBoardTheme,
@@ -66,6 +67,7 @@ export default function App() {
                 mode: latest.mode,
                 aiColor: latest.ai_color,
                 difficulty: latest.difficulty,
+                timeControl: latest.time_control ?? 'none',
                 state: latest.board_state,
               }
             : null
@@ -80,6 +82,7 @@ export default function App() {
               mode: guest.mode,
               aiColor: guest.aiColor,
               difficulty: guest.difficulty,
+              timeControl: guest.timeControl ?? 'none',
               state: guest.state,
             }
           : null
@@ -117,7 +120,7 @@ export default function App() {
         ? resumable.aiColor === 'white' ? 'black' : 'white'
         : 'white';
     savedGameIdRef.current = resumable.source === 'cloud' ? resumable.id : undefined;
-    resumeGame(resumable.mode, color, resumable.state, resumable.difficulty);
+    resumeGame(resumable.mode, color, resumable.state, resumable.difficulty, resumable.timeControl);
     setView('local');
   }
 
@@ -146,7 +149,7 @@ export default function App() {
         return;
       }
       const timeout = setTimeout(() => {
-        saveGuestGame(mode, aiColorForSave, difficulty, state);
+        saveGuestGame(mode, aiColorForSave, difficulty, timeControl, state);
       }, 800);
       return () => clearTimeout(timeout);
     }
@@ -160,15 +163,16 @@ export default function App() {
     }
 
     const timeout = setTimeout(() => {
-      saveGame(session.user!.id, state, mode, aiColorForSave, difficulty, 'Untitled game', savedGameIdRef.current).then(
-        ({ data }) => {
-          if (data) savedGameIdRef.current = data.id;
-        }
-      );
+      saveGame(
+        session.user!.id, state, mode, aiColorForSave, difficulty, timeControl,
+        'Untitled game', savedGameIdRef.current
+      ).then(({ data }) => {
+        if (data) savedGameIdRef.current = data.id;
+      });
     }, 800);
 
     return () => clearTimeout(timeout);
-  }, [state, view, vsAI, playerColor, difficulty, session?.user?.id, clock.timedOut]);
+  }, [state, view, vsAI, playerColor, difficulty, timeControl, session?.user?.id, clock.timedOut]);
 
   const resumeLabel = resumable
     ? resumable.mode === 'vs-ai'

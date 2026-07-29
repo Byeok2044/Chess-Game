@@ -60,17 +60,23 @@ export function useChessGame() {
     setScreen('playing');
   }
 
-function resumeGame(mode: 'two-player' | 'vs-ai', color: Color, savedState: GameState, diff: Difficulty = 'medium') {
-  setVsAI(mode === 'vs-ai');
-  setPlayerColor(color);
-  setFlipped(mode === 'vs-ai' && color === 'black');
-  setState(savedState);
-  setPendingFrom(null);
-  setTimeControl('none');
-  setDifficulty(diff); // was hardcoded to 'medium'
-  clock.reset();
-  setScreen('playing');
-}
+  function resumeGame(
+    mode: 'two-player' | 'vs-ai',
+    color: Color,
+    savedState: GameState,
+    diff: Difficulty = 'medium',
+    tc: TimeControl = 'none'
+  ) {
+    setVsAI(mode === 'vs-ai');
+    setPlayerColor(color);
+    setFlipped(mode === 'vs-ai' && color === 'black');
+    setState(savedState);
+    setPendingFrom(null);
+    setTimeControl(tc);
+    setDifficulty(diff);
+    clock.reset();
+    setScreen('playing');
+  }
 
   function handleSquareClick(r: number, c: number) {
     if (clock.timedOut) return;
