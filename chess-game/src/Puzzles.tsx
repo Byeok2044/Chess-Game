@@ -194,14 +194,12 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
     <div className="puzzles-page">
       <main className="puzzles-layout">
         <section className="puzzle-stage" aria-label="Current puzzle">
-          <button className="btn-ghost puzzle-back-link" onClick={onBack}>← Back</button>
-          <div className="puzzle-stage-head">
-            <div>
-              <div className="puzzle-objective">
-                <span className="puzzle-position">#{index + 1}</span>
-                <h2 className="puzzle-goal-label">{sideToMove} to move</h2>
-                <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
-              </div>
+          <div className="puzzle-topbar">
+            <button className="btn-ghost puzzle-back-link" onClick={onBack}>← Back</button>
+            <div className="puzzle-objective">
+              <span className="puzzle-position">#{index + 1}</span>
+              <h2 className="puzzle-goal-label">{sideToMove} to move</h2>
+              <span className={`puzzle-badge ${difficultyBadge(puzzle.rating)}`}>{puzzle.rating}</span>
             </div>
           </div>
 
@@ -243,19 +241,17 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
         </section>
 
         <aside className="puzzles-sidebar">
-            {feedback === 'correct' && <div className="puzzle-feedback-card correct" role="status">Correct</div>}
-            {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" role="alert">Incorrect</div>}
-            {feedback === 'complete' && (
-              <div className="puzzle-feedback-card complete">
-                <strong>Puzzle complete</strong>
-              </div>
-            )}
+            <div className="puzzle-status-slot" aria-live="polite">
+              {feedback === 'correct' && <div className="puzzle-feedback-card correct" role="status">Correct</div>}
+              {feedback === 'incorrect' && <div className="puzzle-feedback-card incorrect" role="alert">Incorrect</div>}
+              {feedback === 'complete' && (
+                <div className="puzzle-feedback-card complete">
+                  <strong>Puzzle complete</strong>
+                </div>
+              )}
+            </div>
 
-            <div className="puzzle-library">
-              <div className="puzzle-library-head">
-                <h2>Puzzles</h2>
-                <span>{PUZZLE_CATALOG.length}</span>
-              </div>
+            <nav className="puzzle-library" aria-label="Puzzle list">
               <div className="moves-grid">
                 {PUZZLE_CATALOG.map((p, i) => (
                   <button key={p.id} className={`puzzle-list-item ${i === index ? 'active' : ''}`} onClick={() => loadPuzzle(i)} aria-current={i === index ? 'true' : undefined}>
@@ -268,7 +264,7 @@ export default function Puzzles({ onBack }: { onBack: () => void }) {
                   </button>
                 ))}
               </div>
-            </div>
+            </nav>
         </aside>
       </main>
     </div>
