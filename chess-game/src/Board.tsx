@@ -3,8 +3,8 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } f
 import type { GameState, Piece, PieceType } from './Chess.ts';
 
 const PIECES: Record<string, string> = {
-  'white-king': '♔', 'white-queen': '♕', 'white-rook': '♖',
-  'white-bishop': '♗', 'white-knight': '♘', 'white-pawn': '♙',
+  'white-king': '♚', 'white-queen': '♛', 'white-rook': '♜',
+  'white-bishop': '♝', 'white-knight': '♞', 'white-pawn': '♟',
   'black-king': '♚', 'black-queen': '♛', 'black-rook': '♜',
   'black-bishop': '♝', 'black-knight': '♞', 'black-pawn': '♟',
 };
@@ -40,6 +40,13 @@ export default function Board({
   promotionInteractive = true,
 }: Props) {
   const { board, selected, validMoves, promotionPending, turn, status, lastMove } = state;
+  const promotionDialog = useRef<HTMLDialogElement>(null);
+  const promotionOpen = !!promotionPending;
+  useEffect(() => {
+    const dialog = promotionDialog.current;
+    if (promotionOpen) dialog?.showModal();
+    return () => dialog?.close();
+  }, [promotionOpen]);
 
   const rows = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
   const cols = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
@@ -69,7 +76,7 @@ export default function Board({
 
   useEffect(() => {
     const el = cellRefs.current.get(`${focused[0]}-${focused[1]}`);
-    el?.focus();
+    el?.focus({ preventScroll: true });
   }, [focused]);
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>, r: number, c: number) {
@@ -217,8 +224,7 @@ export default function Board({
       </div>
 
       {promotionPending && (
-        <div className="promotion-overlay">
-          <div className="promotion-modal">
+        <dialog ref={promotionDialog} className="promotion-modal" aria-label="Pawn promotion" onCancel={(event) => event.preventDefault()}>
             {promotionInteractive ? (
               <>
                 <p>Promote pawn to:</p>
@@ -236,8 +242,7 @@ export default function Board({
             ) : (
               <p>Waiting for opponent to choose a promotion…</p>
             )}
-          </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

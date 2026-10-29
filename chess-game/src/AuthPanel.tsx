@@ -59,7 +59,7 @@ export default function AuthPanel() {
             className="auth-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
+            placeholder="Username" aria-label="Username" autoComplete="username"
             required
           />
         )}
@@ -68,7 +68,7 @@ export default function AuthPanel() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder="Email" aria-label="Email" autoComplete="email"
           required
         />
         <input
@@ -76,7 +76,7 @@ export default function AuthPanel() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
+          placeholder="Password" aria-label="Password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
           minLength={6}
           required
         />
@@ -85,8 +85,8 @@ export default function AuthPanel() {
           {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
         </button>
       </form>
-      {error && <p className="auth-message auth-error">{error}</p>}
-      {success && <p className="auth-message auth-success">✓ {success}</p>}
+      {error && <p role="alert" className="auth-message auth-error">{error}</p>}
+      {success && <p role="status" className="auth-message auth-success">✓ {success}</p>}
       <button
         className="btn-ghost"
         style={{ marginTop: 10 }}

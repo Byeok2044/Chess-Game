@@ -1,4 +1,4 @@
-export type BoardTheme = 'ledger' | 'classic' | 'slate' | 'forest' | 'rosewood';
+export type BoardTheme = 'rebel' | 'ledger' | 'classic' | 'slate' | 'forest' | 'rosewood';
 export type PieceStyle = 'unicode' | 'minimal';
 export type TimeControl = 'none' | '1+0' | '3+2' | '5+0' | '10+0';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -15,7 +15,7 @@ export interface GameSettings {
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  boardTheme: 'ledger',
+  boardTheme: 'rebel',
   pieceStyle: 'unicode',
   showCoordinates: true,
   showValidMoves: true,
@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
 };
 
 export const BOARD_THEMES: Record<BoardTheme, { light: string; dark: string; name: string }> = {
+  rebel:    { light: '#eee5d5', dark: '#55545e', name: 'Rebel' },
   ledger:   { light: '#e8dcc0', dark: '#6b4a30', name: 'Ledger' },
   classic:  { light: '#eee0c0', dark: '#8b6e45', name: 'Classic' },
   slate:    { light: '#c9c4b6', dark: '#454a44', name: 'Slate' },

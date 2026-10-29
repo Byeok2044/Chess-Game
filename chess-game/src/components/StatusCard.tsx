@@ -20,7 +20,7 @@ export default function StatusCard({ state, aiThinking, onPlayAgain, timedOut }:
   const gameOver = !!timedOut || state.status === 'checkmate' || state.status === 'stalemate';
 
   return (
-    <div className={`status-card ${timedOut ? 'checkmate' : state.status}`}>
+    <div role="status" aria-live="polite" className={`status-card ${timedOut ? 'checkmate' : state.status}`}>
       <span>{statusMsg}</span>
       {gameOver && <button className="btn-primary" onClick={onPlayAgain}>Play again</button>}
     </div>

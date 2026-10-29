@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from './lib/supabase.ts';
 import { getOrFetch, appCache } from './lib/cache.ts';
 import './Leaderboard.css';
@@ -23,14 +23,18 @@ async function fetchLeaderboard(): Promise<Row[]> {
 }
 
 export default function Leaderboard({ onClose }: { onClose: () => void }) {
+  const modal = useRef<HTMLDialogElement>(null);
+  const [error, setError] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   function load() {
     setLoading(true);
+    setError(false);
     getOrFetch(LEADERBOARD_KEY, LEADERBOARD_TTL_MS, fetchLeaderboard)
       .then(setRows)
+      .catch(() => setError(true))
       .finally(() => {
         setLoading(false);
         setRefreshing(false);
@@ -38,7 +42,10 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
   }
 
   useEffect(() => {
+    modal.current?.showModal();
     load();
+    const element = modal.current;
+    return () => element?.close();
   }, []);
 
   function handleRefresh() {
@@ -48,10 +55,9 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="leaderboard-overlay" onClick={onClose}>
-      <div className="leaderboard-modal" onClick={(e) => e.stopPropagation()}>
+    <dialog ref={modal} className="leaderboard-modal" aria-labelledby="leaderboard-title" onCancel={onClose}>
         <div className="leaderboard-head">
-          <span className="leaderboard-title">Leaderboard</span>
+          <span id="leaderboard-title" className="leaderboard-title">Leaderboard</span>
           <button className="btn-ghost" onClick={handleRefresh} disabled={refreshing || loading}>
             {refreshing ? '…' : '↻ Refresh'}
           </button>
@@ -61,7 +67,8 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
           {loading &&
             Array.from({ length: 6 }, (_, i) => <div key={i} className="leaderboard-skeleton-row" />)}
 
-          {!loading && rows.length === 0 && (
+          {error && <p className="leaderboard-empty auth-error" role="alert">Could not load the rankings. Try Refresh to reconnect.</p>}
+          {!loading && !error && rows.length === 0 && (
             <div className="leaderboard-empty">
               No ranked games yet — play online to be the first on the board.
             </div>
@@ -85,7 +92,6 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </dialog>
   );
 }

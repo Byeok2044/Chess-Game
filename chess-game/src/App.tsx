@@ -37,6 +37,7 @@ interface ResumableGame {
 
 export default function App() {
   const [view, setView] = useState<View>('landing');
+  useEffect(() => { window.scrollTo(0, 0); }, [view]);
   const [multiplayerGameId, setMultiplayerGameId] = useState<string | null>(null);
   const [multiplayerColor, setMultiplayerColor] = useState<Color>('white');
   const [resumable, setResumable] = useState<ResumableGame | null>(null);
@@ -262,7 +263,7 @@ const blackBar = (
       lead={blackLead}
       thinking={vsAI && aiThinking && aiColor === 'black'}
       timeMs={clock.hasClock ? clock.blackMs : undefined}
-      clockActive={clock.hasClock && state.turn === 'black' && !gameOver}
+      clockActive={state.turn === 'black' && !gameOver}
     />
   );
 
@@ -276,7 +277,7 @@ const blackBar = (
       lead={whiteLead}
       thinking={vsAI && aiThinking && aiColor === 'white'}
       timeMs={clock.hasClock ? clock.whiteMs : undefined}
-      clockActive={clock.hasClock && state.turn === 'white' && !gameOver}
+      clockActive={state.turn === 'white' && !gameOver}
     />
   );
 

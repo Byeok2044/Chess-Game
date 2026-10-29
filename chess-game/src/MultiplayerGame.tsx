@@ -10,6 +10,7 @@ import {
   claimTimeout, computeMoveClocks, getUsernames,
 } from './lib/gameSync.ts';
 import { useMultiplayerClock } from './hooks/useMultiplayerClock.ts';
+import { useConfirm } from './components/ConfirmDialog.tsx';
 import { useAuth } from './lib/AuthContext.tsx';
 import { capturedIconsFor } from './utils/capturedIcons.ts';
 import { materialScore } from './utils/Material.ts';
@@ -23,6 +24,7 @@ interface Props {
 
 export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) {
   const { session } = useAuth();
+  const { confirm, confirmation } = useConfirm();
   const game = useMultiplayerGame(gameId);
   const { opponentOnline } = usePresenceAbandonment(gameId, game, playerColor, session?.user?.id ?? null);
   const clock = useMultiplayerClock(game);
@@ -51,7 +53,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
     return (
       <div className="menu-root">
         <div className="menu-content">
-          <p>Loading game…</p>
+          <p className="loading-callout" role="status">Loading game…</p>
           <button className="btn-ghost" onClick={onExit}>← Back</button>
         </div>
       </div>
@@ -64,7 +66,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
         <div className="menu-content">
           <h1 className="menu-title" style={{ fontSize: 40 }}>Waiting for opponent…</h1>
           <p>Share this code:</p>
-          <code style={{ fontSize: 28, letterSpacing: 4 }}>{game.invite_code}</code>
+          <code className="invite-code">{game.invite_code}</code>
           <button className="btn-ghost" onClick={onExit}>← Back</button>
         </div>
       </div>
@@ -79,7 +81,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
 
   async function handleLeave() {
     if (game?.status === 'active') {
-      const ok = window.confirm('Leaving now forfeits the game. Are you sure?');
+      const ok = await confirm('Leaving now forfeits the game. Are you sure?');
       if (!ok) return;
       await resignGame(gameId, playerColor);
     }
@@ -164,7 +166,7 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
       lead={blackLead}
       thinking={false}
       timeMs={clock.hasClock ? clock.blackMs : undefined}
-      clockActive={clock.hasClock && game.turn === 'black' && game.status === 'active'}
+      clockActive={game.turn === 'black' && game.status === 'active'}
     />
   );
 
@@ -178,12 +180,13 @@ export default function MultiplayerGame({ gameId, playerColor, onExit }: Props) 
       lead={whiteLead}
       thinking={false}
       timeMs={clock.hasClock ? clock.whiteMs : undefined}
-      clockActive={clock.hasClock && game.turn === 'white' && game.status === 'active'}
+      clockActive={game.turn === 'white' && game.status === 'active'}
     />
   );
 
   return (
     <div className="app">
+      {confirmation}
       <header className="header">
         <div className="logo">
           <span className="logo-piece">♟</span>

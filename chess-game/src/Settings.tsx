@@ -25,7 +25,7 @@ interface ToggleRowProps {
 
 function ToggleRow({ icon, name, desc, value, onToggle }: ToggleRowProps) {
   return (
-    <div className="setting-item" onClick={onToggle} role="switch" aria-checked={value} style={{ cursor: 'pointer' }}>
+    <button type="button" className="setting-item" onClick={onToggle} role="switch" aria-label={name} aria-checked={value}>
       <div className="setting-label">
         <span className="setting-icon">{icon}</span>
         <div>
@@ -36,7 +36,7 @@ function ToggleRow({ icon, name, desc, value, onToggle }: ToggleRowProps) {
       <div className={`toggle ${value ? 'on' : ''}`}>
         <div className="toggle-thumb" />
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -84,11 +84,11 @@ export default function Settings({
           onToggle={onToggleFlipped}
         />
 
-        <div className="setting-item" style={{ cursor: 'default' }}>
+        <div className="setting-item setting-item--themes">
           <div className="setting-label">
             <span className="setting-icon">◈</span>
             <div>
-              <div className="setting-name">Board theme</div>
+              <div className="setting-name">Board theme · {BOARD_THEMES[boardTheme].name}</div>
               <div className="setting-desc">Square color palette</div>
             </div>
           </div>

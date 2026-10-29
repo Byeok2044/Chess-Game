@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" fill="none">
+<defs><pattern id="dots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2" fill="#111"/></pattern></defs>
+<path d="M86 526 105 441 164 362 203 298 173 259 92 305 46 260 97 170 177 113 208 40 251 89 316 72 386 138 416 243 394 330 344 403 379 465 413 525Z" fill="#f8f3e8" stroke="#111" stroke-width="16" stroke-linejoin="miter"/>
+<path d="m208 40 6 105-83 60-41 64 84-37 59 33 21 48-52 91-52 66h193l-25-69 48-81 11-96-37-89-59-33-27 56Z" fill="#111"/>
+<path d="m286 119 54 64 23 76-29 69-51 51-36 64h56l-6-55 52-73 21-86-24-86Z" fill="url(#dots)"/>
+<path d="m134 192 71-27-32 48Z" fill="#ee1739"/>
+<path d="m195 119 10-46 15 37-10 30ZM50 258l38 9-13 23Z" fill="#111"/>
+<path d="m85 491 287-29 28 51-323 35Z" fill="#ee1739" stroke="#111" stroke-width="12"/>
+<path d="m69 535 339-24 18 43-371 27Z" fill="#111" stroke="#f8f3e8" stroke-width="9"/>
+<path d="m256 174 48-11-19 35Z" fill="#f8f3e8"/>
+<path d="m275 285-23 48m-4 13-12 22" stroke="#f8f3e8" stroke-width="8"/>
+</svg>

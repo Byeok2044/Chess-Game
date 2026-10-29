@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { initGame } from './Chess.ts';
 import { createGame, joinGameByCode } from './lib/gameSync.ts';
+import { useConfirm } from './components/ConfirmDialog.tsx';
 import { useAuth } from './lib/AuthContext.tsx';
 import AuthPanel from './AuthPanel.tsx';
 import { TIME_CONTROLS } from './GameSettings.ts';
@@ -15,6 +16,7 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
   onBack: () => void;
 }) {
   const { session, profile, signOut } = useAuth();
+  const { confirm, confirmation } = useConfirm();
   const [code, setCode] = useState('');
   const [timeControl, setTimeControl] = useState<TimeControl>('none');
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
   async function handleSignOut() {
     if (signingOut) return;
     if (busy) {
-      const ok = window.confirm('An action is in progress. Sign out anyway?');
+      const ok = await confirm('An action is in progress. Sign out anyway?');
       if (!ok) return;
     }
     setSigningOut(true);
@@ -78,6 +80,7 @@ export default function OnlineLobby({ onEnterGame, onBack }: {
 
   return (
     <div className="menu-root">
+      {confirmation}
       <div className="menu-bg">
         <div className="menu-board-preview">
           {Array.from({ length: 64 }, (_, i) => (

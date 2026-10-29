@@ -19,7 +19,7 @@ export default function PlayerBar({
   const criticalTime = timeMs !== undefined && timeMs <= 10000;
 
   return (
-    <div className="player-bar">
+    <div className={`player-bar ${clockActive ? 'is-active' : ''}`}>
       <span className={`player-avatar ${avatarClass}`}>{avatarIcon}</span>
       <span className="player-name">
         {label}{lead > 0 && ` +${lead}`}
