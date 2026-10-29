@@ -16,7 +16,7 @@ export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Prop
     <div className="landing">
       {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
       <header className="landing-masthead">
-        <span className="brand-mark"><span aria-hidden="true">♞</span> CHESS / REIMAGINED</span>
+        <span className="brand-mark"><span aria-hidden="true">♞</span> CHESS</span>
         <span className="masthead-note">64 SQUARES. NO ALIBIS.</span>
       </header>
       <div className="landing-art" aria-hidden="true">
@@ -28,7 +28,6 @@ export default function Landing({ onPlay, onSettings, onAbout, onPuzzles }: Prop
         <span className="art-cross cross-two">✦</span>
       </div>
       <main className="landing-content">
-        <p className="landing-eyebrow">A BATTLE OF WITS</p>
         <h1 className="landing-title">CH<span>E</span>SS<span className="title-period">.</span></h1>
         <p className="landing-tagline"><span>TAKE THE KING.</span><br />OWN THE BOARD.</p>
         <nav className="landing-actions" aria-label="Main menu">
